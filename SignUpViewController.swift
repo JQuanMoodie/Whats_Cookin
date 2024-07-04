@@ -45,23 +45,33 @@ class SignUpViewController: UIViewController {
         return button
     }()
 
+    private let backButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "arrow.backward"), for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        return button
+    }()
+
+    //Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = .white
 
-        // Add subviews
+        // subviews
         view.addSubview(usernameTextField)
         view.addSubview(passwordTextField)
         view.addSubview(emailTextField)
         view.addSubview(signUpButton)
+        view.addSubview(backButton)
 
-        // Layout constraints
+        // constraints
         setupConstraints()
     }
 
-    // Constraints Setup
+    //Constraints Setup
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
@@ -86,8 +96,14 @@ class SignUpViewController: UIViewController {
             // Sign Up Button Constraints
             signUpButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             signUpButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 20),
+
+            // Back Button Constraints
+            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
         ])
     }
+
+    //Actions
 
     @objc private func signUpButtonTapped() {
         guard let username = usernameTextField.text, !username.isEmpty,
@@ -100,6 +116,10 @@ class SignUpViewController: UIViewController {
 
         // Handle sign-up logic here
         print("Username: \(username), Password: \(password), Email: \(email)")
+    }
+
+    @objc private func backButtonTapped() {
+        dismiss(animated: true, completion: nil)
     }
 
     private func showAlert(message: String) {

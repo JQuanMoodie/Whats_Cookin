@@ -9,7 +9,7 @@ import UIKit
 
 class LoginViewController: UIViewController {
 
-    // UI Elements
+    //UI Elements
 
     private let usernameTextField: UITextField = {
         let textField = UITextField()
@@ -44,13 +44,12 @@ class LoginViewController: UIViewController {
         return button
     }()
 
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = .white
 
-        // subviews
+        //subviews
         view.addSubview(usernameTextField)
         view.addSubview(passwordTextField)
         view.addSubview(loginButton)
@@ -60,7 +59,7 @@ class LoginViewController: UIViewController {
         setupConstraints()
     }
 
-    //Constraints Setup
+    // Constraints Setup
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
@@ -96,7 +95,7 @@ class LoginViewController: UIViewController {
             return
         }
 
-        // Handle login logic here
+        // Handle login logic here (firebase auth)
         print("Username: \(username), Password: \(password)")
     }
 
