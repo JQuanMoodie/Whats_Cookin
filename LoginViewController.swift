@@ -4,12 +4,18 @@
 //
 //  Created by Raisa Methila on 7/4/24.
 //
-
 import UIKit
+
+protocol LoginViewControllerDelegate: AnyObject {
+    func didLoginSuccessfully()
+}
 
 class LoginViewController: UIViewController {
 
-    //UI Elements
+    // Delegate to handle login success
+    weak var delegate: LoginViewControllerDelegate?
+
+    // UI Elements
 
     private let usernameTextField: UITextField = {
         let textField = UITextField()
@@ -49,7 +55,7 @@ class LoginViewController: UIViewController {
 
         view.backgroundColor = .white
 
-        //subviews
+        // Add subviews
         view.addSubview(usernameTextField)
         view.addSubview(passwordTextField)
         view.addSubview(loginButton)
@@ -85,7 +91,7 @@ class LoginViewController: UIViewController {
         ])
     }
 
-    //Actions
+    // Actions
 
     @objc private func loginButtonTapped() {
         guard let username = usernameTextField.text, !username.isEmpty,
@@ -97,6 +103,9 @@ class LoginViewController: UIViewController {
 
         // Handle login logic here (firebase auth)
         print("Username: \(username), Password: \(password)")
+        
+        // If login is successful
+        handleLoginSuccess()
     }
 
     @objc private func signUpButtonTapped() {
@@ -109,5 +118,10 @@ class LoginViewController: UIViewController {
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
+    }
+
+    // Call this method when login is successful
+    private func handleLoginSuccess() {
+        delegate?.didLoginSuccessfully()
     }
 }

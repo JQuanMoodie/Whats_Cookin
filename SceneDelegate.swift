@@ -16,9 +16,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(windowScene: windowScene)
         let loginViewController = LoginViewController()
+        loginViewController.delegate = self
         window?.rootViewController = loginViewController
         window?.makeKeyAndVisible()
     }
 }
+
+extension SceneDelegate: LoginViewControllerDelegate {
+    func didLoginSuccessfully() {
+        let homeViewController = HomeViewController()
+        window?.rootViewController = UINavigationController(rootViewController: homeViewController)
+    }
+}
+
 
 
