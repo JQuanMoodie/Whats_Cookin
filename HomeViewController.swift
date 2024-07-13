@@ -5,11 +5,10 @@
 //  Created by Raisa Methila on 7/12/24.
 //
 
-
-
 import UIKit
+import SwiftUI
 
-class HomeViewController: UIViewController, UITabBarDelegate {
+class HomeViewController: UIViewController {
     
     // MARK: - UI Elements
     
@@ -97,9 +96,6 @@ class HomeViewController: UIViewController, UITabBarDelegate {
         
         view.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         
-        // Set delegate for tabBar
-        tabBar.delegate = self
-        
         // Add subviews
         view.addSubview(menuButton)
         view.addSubview(profileButton)
@@ -111,7 +107,17 @@ class HomeViewController: UIViewController, UITabBarDelegate {
         
         // Layout constraints
         setupConstraints()
+        
+        profileButton.addTarget(self, action: #selector(profileButtonTapped), for: .touchUpInside)
     }
+    
+    @objc private func profileButtonTapped() {
+        let profileView = ProfileUIView()
+    let hostingController = UIHostingController(rootView: profileView)
+    hostingController.modalPresentationStyle = .fullScreen
+    present(hostingController, animated: true, completion: nil)
+}
+
     
     // MARK: - Constraints Setup
     
@@ -151,15 +157,5 @@ class HomeViewController: UIViewController, UITabBarDelegate {
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-    }
-    
-    // MARK: - UITabBarDelegate
-    
-    func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        if item.tag == 3 { // The tag for the Search tab bar item
-            let searchViewController = SearchViewController()
-            searchViewController.modalPresentationStyle = .fullScreen
-            present(searchViewController, animated: true, completion: nil)
-        }
     }
 }

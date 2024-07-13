@@ -7,17 +7,31 @@
 
 import SwiftUI
 import PhotosUI
-struct SwiftUIView: View {
+struct ProfileUIView: View {
     @StateObject var viewModel = ProfileViewModel()
     @State private var isOnline: Bool = UserDefaults.standard.bool(forKey: "isOnlineStatus")
     @State private var navigateToSettings = false
-   
+    @State private var showViewController = false
     @State private var bioInput: String = UserDefaults.standard.string(forKey: "userInput") ?? ""
-    
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
+        
         NavigationStack{
             VStack{
+                 HStack{
+                    Button(action: {
+                        dismiss() // Dismiss the view and go back
+                    }) {
+                        Image(systemName: "arrow.left")
+                            .resizable()
+                            .frame(width: 18, height: 18)
+                            .foregroundColor(.black)
+                    }.padding()
+                    
+                     Spacer()
+                }
                 NavigationLink("Go to Detail View", destination: DetailView())
+               
                 PhotosPicker(selection: $viewModel.selectedItem) {
                     if let profileImage = viewModel.profileImage{
                         profileImage.resizable()
@@ -92,8 +106,10 @@ struct DetailView: View {
         .navigationTitle("Detail Page")
     }
 }
+
+
 #Preview {
-    SwiftUIView()
+    ProfileUIView()
 }
 
 
