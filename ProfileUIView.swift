@@ -25,7 +25,7 @@ struct ProfileUIView: View {
                         Image(systemName: "arrow.left")
                             .resizable()
                             .frame(width: 18, height: 18)
-                            .foregroundColor(.black)
+                            .foregroundColor(.blue)
                     }.padding()
                     
                      Spacer()
