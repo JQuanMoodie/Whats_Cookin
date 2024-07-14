@@ -9,20 +9,29 @@ import UIKit
 
 class RecipeCell: UITableViewCell{
     
-    var recipeImageView = UIImageView()
+    //Recipe Name
     var recipeTitleLabel = UILabel()
+    //Button for favoriting/unfavoriting
+    let button = UIButton()
     
+    //Organizes how the table cell looks
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?){
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        addSubview(recipeImageView)
         addSubview(recipeTitleLabel)
+        contentView.addSubview(button)
         
-        configureImageView()
+        button.setImage(UIImage(systemName: "star"), for: .normal)
+        button.isUserInteractionEnabled = true
+        button.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button.centerYAnchor.constraint(equalTo: centerYAnchor)
+        ])
+        
         configureTitleLabel()
-        setImageConstraints()
         setTitleLabelConstraints()
     }
     
+    //Grabs the name of the recipe to display in the table
     func set(recipe: Recipe)
     {
         recipeTitleLabel.text = recipe.name
@@ -31,31 +40,20 @@ class RecipeCell: UITableViewCell{
     required init?(coder: NSCoder){
         fatalError("init(coder:) has not been implemented")
     }
-    
-    func configureImageView(){
-        recipeImageView.layer.cornerRadius = 10
-        recipeImageView.clipsToBounds = true
-    }
-    
+
+    //Sets up of the name of the recipe will look
     func configureTitleLabel(){
         recipeTitleLabel.numberOfLines = 0
         recipeTitleLabel.adjustsFontSizeToFitWidth = true
     }
     
-    func setImageConstraints(){
-        recipeImageView.translatesAutoresizingMaskIntoConstraints = false
-        recipeImageView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        recipeImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12).isActive = true
-        recipeImageView.heightAnchor.constraint(equalToConstant: 80).isActive = true
-        recipeImageView.widthAnchor.constraint(equalTo: recipeImageView.heightAnchor, multiplier: 16/9).isActive = true
-    }
-    
+    //Aligns the name of the recipe in the table cell
     func setTitleLabelConstraints() {
-        recipeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        recipeTitleLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        recipeTitleLabel.leadingAnchor.constraint(equalTo: recipeImageView.trailingAnchor, constant: 20).isActive = true
-        recipeTitleLabel.heightAnchor.constraint(equalToConstant: 80).isActive = true
-        recipeTitleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12).isActive = true
+        recipeTitleLabel.translatesAutoresizingMaskIntoConstraints                              = false
+        recipeTitleLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive              = true
+        recipeTitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 30).isActive = true
+        recipeTitleLabel.heightAnchor.constraint(equalToConstant: 80).isActive                  = true
+        recipeTitleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -5).isActive            = true
 
     }
 }

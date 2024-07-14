@@ -9,6 +9,7 @@ import UIKit
 
 class FavoritesViewController: UIViewController{
     
+    //View of the table representing the favorite recipes
     var tableView = UITableView()
     
     //Array of recipes in the favorite list
@@ -27,6 +28,7 @@ class FavoritesViewController: UIViewController{
         }
     }
     
+    //Creating Menu button
     private let menuButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
@@ -34,29 +36,7 @@ class FavoritesViewController: UIViewController{
         return button
     }()
     
-    private let favRecipe: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.layer.cornerRadius = 25
-        button.layer.borderWidth = 1
-        button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOffset = CGSize(width: 0.0, height: 6.0)
-        button.layer.shadowRadius = 5
-        button.layer.shadowOpacity = 100
-        button.clipsToBounds = true
-        button.layer.masksToBounds = false
-        return button
-    }()
-    
-    private let starButton: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(systemName: "star"), for: .normal)
-        button.backgroundColor = UIColor.black
-        button.imageView?.contentMode = .scaleAspectFit
-        return button
-    }()
-    
+    //Creating the Search Text Box
     private let searchTextField: UITextField = {
             let textField = UITextField()
             textField.placeholder = "Search Through Your Favorite Recipes"
@@ -65,15 +45,7 @@ class FavoritesViewController: UIViewController{
             return textField
         }()
     
-    private let buttonTextField: UITextField = {
-            let textField = UITextField()
-            textField.placeholder = "Recipe Name"
-        textField.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
-            textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.layer.zPosition = 1;
-            return textField
-        }()
-    
+    //Creating the Profile Button
     private let profileButton: UIButton = {
         let button = UIButton()
         button.setTitle("Profile", for: .normal)
@@ -82,6 +54,7 @@ class FavoritesViewController: UIViewController{
         return button
     }()
     
+    //Creating the app title
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "What's Cookin'"
@@ -90,6 +63,7 @@ class FavoritesViewController: UIViewController{
         return label
     }()
     
+    //Creating the bottom tab
     private let tabBar: UITabBar = {
         let tabBar = UITabBar()
         let homeItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), tag: 0)
@@ -138,7 +112,7 @@ class FavoritesViewController: UIViewController{
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //Grab Data
+        //Grab Dummy Data For Testing
         favRecipes = fetchData()
         
         // Set Up the Page Elements
@@ -148,6 +122,7 @@ class FavoritesViewController: UIViewController{
         setupConstraints()
     }
     
+    //Adds all page elemeents to the screen
     private func setUpPage(){
         view.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         view.addSubview(menuButton)
@@ -158,6 +133,7 @@ class FavoritesViewController: UIViewController{
         configureTableView()
     }
     
+    //Aligns the table with the rest of the elements
     func configureTableView(){
         view.addSubview(tableView)
         setTableViewDelegate()
@@ -165,6 +141,7 @@ class FavoritesViewController: UIViewController{
         tableView.rowHeight = 100;
         tableView.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         tableView.register(RecipeCell.self, forCellReuseIdentifier: "RecipeCell")
+        tableView.showsVerticalScrollIndicator = false
     }
     
     func setTableViewDelegate(){
@@ -174,38 +151,47 @@ class FavoritesViewController: UIViewController{
 }
 
 extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource{
+    
+    //Setting the number of rows for the table
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
         return favRecipes.count
     }
     
+    //Setting the data for each data cell
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "RecipeCell") as! RecipeCell
-        cell.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         let recipe = favRecipes[indexPath.row]
+        
+        cell.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         cell.set(recipe: recipe)
-        //cell.accessoryType = .detailDisclosureButton
+        
+        let action = UIAction{action in
+            self.removeFavRecipe(recipe: recipe)
+        }
+        cell.button.addAction(action, for: .touchUpInside)
         
         return cell
     }
     
+    //Setting the Action for when the user clicks the table cell
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-            
+        
     }
 }
 
-//Dummy Data
+//Dummy Data for Testing
 extension FavoritesViewController{
     func fetchData() -> [Recipe] {
         let recipe1 = Recipe(name: "Jamaican Oxtail with Rices and Peas")
-        let recipe2 = Recipe(name: "Chef Tini's Famous Baked Macaroni and Cheese")
+        let recipe2 = Recipe(name: "Chef Tini's Famous Baked Macaroni & Cheese")
         let recipe3 = Recipe(name: "Southern Style Deep Fried Chicken")
         let recipe4 = Recipe(name: "Cilantro White Rice")
         let recipe5 = Recipe(name: "Nacho Chips with Spicy Guacamole")
         let recipe6 = Recipe(name: "Carne Asada Tacos with Cheese")
-        let recipe7 = Recipe(name: "Black Rice with Pikliz")
-        let recipe8 = Recipe(name: "Cheeseburger with Fries")
-        let recipe9 = Recipe(name: "Chopped Cheese with Doritos Chips")
-        let recipe10 = Recipe(name: "Heart Attack and a Kelly Tech")
+        let recipe7 = Recipe(name: "Chicago Style Deep Dish Pizza")
+        let recipe8 = Recipe(name: "Smashed Cheeseburger with Fries")
+        let recipe9 = Recipe(name: "Fettuccine Alfredo with Grilled Chicken")
+        let recipe10 = Recipe(name: "New York Style Cheesecake")
         
         addFavRecipe(recipe: recipe1)
         addFavRecipe(recipe: recipe2)
@@ -225,8 +211,6 @@ extension FavoritesViewController{
     }
 }
 
-#Preview{
-    let vc = FavoritesViewController()
-    
-    return vc
+#Preview {
+    FavoritesViewController()
 }
