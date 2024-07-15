@@ -91,6 +91,16 @@ class SearchViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+    
+  private let backButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Back", for: .normal)
+        button.backgroundColor = UIColor.blue
+        button.layer.cornerRadius = 10
+        button.setTitleColor(.white, for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -107,9 +117,16 @@ class SearchViewController: UIViewController {
         view.addSubview(excludeTextField)
         view.addSubview(searchButton)
         view.addSubview(saveSearchButton)
+        view.addSubview(backButton)
 
         // Layout constraints
         setupConstraints()
+        
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+    }
+    
+    @objc private func backButtonTapped() {
+        dismiss(animated: true, completion: nil)
     }
 
     private func setupConstraints() {
@@ -152,6 +169,10 @@ class SearchViewController: UIViewController {
             saveSearchButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             saveSearchButton.widthAnchor.constraint(equalToConstant: 140),
             saveSearchButton.heightAnchor.constraint(equalToConstant: 40),
+            backButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            backButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            backButton.widthAnchor.constraint(equalToConstant: 100),
+            backButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
 }

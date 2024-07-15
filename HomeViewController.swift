@@ -8,7 +8,7 @@
 import UIKit
 import SwiftUI
 
-class HomeViewController: UIViewController {
+class HomeViewController: UIViewController, UITabBarDelegate, UITabBarControllerDelegate {
     
     // MARK: - UI Elements
     
@@ -108,16 +108,48 @@ class HomeViewController: UIViewController {
         // Layout constraints
         setupConstraints()
         
+       tabBar.delegate = self
+        
         profileButton.addTarget(self, action: #selector(profileButtonTapped), for: .touchUpInside)
+        
+        
     }
     
     @objc private func profileButtonTapped() {
         let profileView = ProfileUIView()
-    let hostingController = UIHostingController(rootView: profileView)
-    hostingController.modalPresentationStyle = .fullScreen
-    present(hostingController, animated: true, completion: nil)
-}
-
+        let hostingController = UIHostingController(rootView: profileView)
+        hostingController.modalPresentationStyle = .fullScreen
+        present(hostingController, animated: true, completion: nil)
+        
+    }
+    
+    
+      // MARK: - UITabBarDelegate
+    
+    func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        switch item.tag {
+        case 0:
+            print("Home tab selected")
+        case 1:
+            print("Fav tab selected")
+        case 2:
+            print("History tab selected")
+        case 3:
+            navigateToSearchView()
+        case 4:
+            print("Settings tab selected")
+        default:
+            break
+        }
+    }
+    
+    private func navigateToSearchView() {
+        let searchVC = SearchViewController()
+        let navigationController = UINavigationController(rootViewController: searchVC)
+        navigationController.modalPresentationStyle = .fullScreen
+        present(navigationController, animated: true, completion: nil)
+    }
+    
     
     // MARK: - Constraints Setup
     
@@ -158,4 +190,7 @@ class HomeViewController: UIViewController {
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
     }
+    
 }
+
+

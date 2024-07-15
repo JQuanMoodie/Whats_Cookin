@@ -6,11 +6,11 @@
 //
 
 import SwiftUI
-import UIKit
 
 struct HomeViewControllerRepresentable: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> HomeViewController {
-        return HomeViewController()
+        let homeViewController = HomeViewController()
+        return homeViewController
     }
 
     func updateUIViewController(_ uiViewController: HomeViewController, context: Context) {
