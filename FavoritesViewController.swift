@@ -6,14 +6,49 @@
 //
 
 import UIKit
+import SwiftUI
 
-class FavoritesViewController: UIViewController{
+protocol FavoritesViewControllerDelegate: AnyObject {
+    func homeTabTapped()
+}
+
+protocol TabBarDelegate: AnyObject {
+    func tabBar()
+}
+
+class FavoritesViewController: UIViewController, UITabBarDelegate{
+    
+    // Delegate to handle login success
+    weak var delegate: FavoritesViewControllerDelegate?
     
     //View of the table representing the favorite recipes
     var tableView = UITableView()
     
     //Array of recipes in the favorite list
     var favRecipes: [Recipe] = []
+    
+    func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        if(item.tag == 0)
+        {
+            homeTabTapped()
+        }
+        if(item.tag == 1)
+        {
+            // Code for item 2
+        }
+        if(item.tag == 2)
+        {
+            // Code for item 1
+        }
+        if(item.tag == 3)
+        {
+            // Code for item 2
+        }
+        if(item.tag == 4)
+        {
+            // Code for item 1
+        }
+    }
     
     //function to add recipes to the favorites list
     public func addFavRecipe(recipe: Recipe){
@@ -120,6 +155,14 @@ class FavoritesViewController: UIViewController{
         
         // Layout Constraints
         setupConstraints()
+        
+        profileButton.addTarget(self, action: #selector(profileButtonTapped), for: .touchUpInside)
+        }
+    @objc private func profileButtonTapped() {
+        let profileView = ProfileUIView()
+        let hostingController = UIHostingController(rootView: profileView)
+        hostingController.modalPresentationStyle = .fullScreen
+        present(hostingController, animated: true, completion: nil)
     }
     
     //Adds all page elemeents to the screen
@@ -208,6 +251,10 @@ extension FavoritesViewController{
         removeFavRecipe(recipe: recipe10)
         
         return favRecipes
+    }
+    
+    private func homeTabTapped() {
+        delegate?.homeTabTapped()
     }
 }
 
