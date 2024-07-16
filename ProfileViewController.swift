@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ProfileViewController: UIViewController, UIImagePickerControllerDelegate & UINavigationControllerDelegate {
+class ProfileViewController: UIViewController, UIImagePickerControllerDelegate & UINavigationControllerDelegate, UITextFieldDelegate {
 
     private let profileImageView = UIImageView()
     private let nameLabel = UILabel()
@@ -25,12 +25,10 @@ class ProfileViewController: UIViewController, UIImagePickerControllerDelegate &
 
         setupViews()
 
-        // Setup initial values
         nameLabel.text = "John Doe"
         bioTextField.text = bioInput
         updateStatusLabel()
 
-        // Load the profile image and apply it to the image view
         viewModel.loadProfileImage()
         if let profileImage = viewModel.profileImage {
             profileImageView.image = profileImage
@@ -41,6 +39,7 @@ class ProfileViewController: UIViewController, UIImagePickerControllerDelegate &
         profileImageView.isUserInteractionEnabled = true
 
         bioTextField.addTarget(self, action: #selector(bioTextFieldDidChange(_:)), for: .editingChanged)
+        bioTextField.delegate = self // Set the delegate
     }
 
     private func setupViews() {
@@ -116,6 +115,11 @@ class ProfileViewController: UIViewController, UIImagePickerControllerDelegate &
         UserDefaults.standard.set(bioInput, forKey: "userInput")
     }
 
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
+
     @objc private func selectProfileImage() {
         let imagePickerController = UIImagePickerController()
         imagePickerController.delegate = self
@@ -165,8 +169,7 @@ extension ProfileViewController {
 }
 
 
+
 #Preview{
     ProfileViewController()
 }
-
-
