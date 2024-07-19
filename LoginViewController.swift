@@ -4,7 +4,10 @@
 //
 //  Created by Raisa Methila on 7/4/24.
 //
+
+
 import UIKit
+import FirebaseAuth
 
 protocol LoginViewControllerDelegate: AnyObject {
     func didLoginSuccessfully()
@@ -25,14 +28,32 @@ class LoginViewController: UIViewController {
         return textField
     }()
 
+//    private let passwordTextField: UITextField = {
+//        let textField = UITextField()
+//        textField.placeholder = "Password"
+//        textField.isSecureTextEntry = true
+//        textField.borderStyle = .roundedRect
+//        textField.translatesAutoresizingMaskIntoConstraints = false
+//        return textField
+//    }()
+   
     private let passwordTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Password"
         textField.isSecureTextEntry = true
         textField.borderStyle = .roundedRect
         textField.translatesAutoresizingMaskIntoConstraints = false
+        if #available(iOS 12.0, *) {
+            textField.textContentType = .newPassword // Set it to newPassword to avoid strong password suggestion
+        } else {
+            textField.textContentType = .none // Fallback for earlier iOS versions
+        }
+        textField.autocorrectionType = .no // Disable autocorrection
+        textField.spellCheckingType = .no // Disable spell checking
         return textField
     }()
+
+
 
     private let loginButton: UIButton = {
         let button = UIButton(type: .system)
@@ -94,18 +115,22 @@ class LoginViewController: UIViewController {
     // Actions
 
     @objc private func loginButtonTapped() {
-        guard let username = usernameTextField.text, !username.isEmpty,
+        guard let email = usernameTextField.text, !email.isEmpty,
               let password = passwordTextField.text, !password.isEmpty else {
-            // Show an alert if username or password is empty
-            showAlert(message: "Please enter both username and password.")
+            // Show an alert if email or password is empty
+            showAlert(message: "Please enter both email and password.")
             return
         }
 
-        // Handle login logic here (firebase auth)
-        print("Username: \(username), Password: \(password)")
-        
-        // If login is successful
-        handleLoginSuccess()
+        Auth.auth().signIn(withEmail: email, password: password) { [weak self] authResult, error in
+            if let error = error {
+                self?.showAlert(message: error.localizedDescription)
+                return
+            }
+
+            // Handle login success
+            self?.handleLoginSuccess()
+        }
     }
 
     @objc private func signUpButtonTapped() {

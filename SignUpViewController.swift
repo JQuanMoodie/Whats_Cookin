@@ -5,30 +5,14 @@
 //  Created by Raisa Methila on 7/4/24.
 //
 
-import Foundation
+
 import UIKit
+import FirebaseAuth
 
 class SignUpViewController: UIViewController {
-    
+
     // UI Elements
 
-    private let usernameTextField: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "Username"
-        textField.borderStyle = .roundedRect
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        return textField
-    }()
-
-    private let passwordTextField: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "Password"
-        textField.isSecureTextEntry = true
-        textField.borderStyle = .roundedRect
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        return textField
-    }()
-    
     private let emailTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Email"
@@ -36,7 +20,42 @@ class SignUpViewController: UIViewController {
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
+
+//    private let passwordTextField: UITextField = {
+//        let textField = UITextField()
+//        textField.placeholder = "Password"
+//        textField.isSecureTextEntry = true
+//        textField.borderStyle = .roundedRect
+//        textField.translatesAutoresizingMaskIntoConstraints = false
+//        return textField
+//    }()
     
+    private let passwordTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "Password"
+        textField.isSecureTextEntry = true
+        textField.borderStyle = .roundedRect
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        if #available(iOS 12.0, *) {
+            textField.textContentType = .newPassword // Set it to newPassword to avoid strong password suggestion
+        } else {
+            textField.textContentType = .none // Fallback for earlier iOS versions
+        }
+        textField.autocorrectionType = .no // Disable autocorrection
+        textField.spellCheckingType = .no // Disable spell checking
+        return textField
+    }()
+
+
+    private let confirmPasswordTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "Confirm Password"
+        textField.isSecureTextEntry = true
+        textField.borderStyle = .roundedRect
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
+    }()
+
     private let signUpButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Sign Up", for: .normal)
@@ -45,80 +64,91 @@ class SignUpViewController: UIViewController {
         return button
     }()
 
-    private let backButton: UIButton = {
+    private let cancelButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "arrow.backward"), for: .normal)
+        button.setTitle("Cancel", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         return button
     }()
-
-    //Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = .white
 
-        // subviews
-        view.addSubview(usernameTextField)
-        view.addSubview(passwordTextField)
+        // Add subviews
         view.addSubview(emailTextField)
+        view.addSubview(passwordTextField)
+        view.addSubview(confirmPasswordTextField)
         view.addSubview(signUpButton)
-        view.addSubview(backButton)
+        view.addSubview(cancelButton)
 
-        // constraints
+        // Layout constraints
         setupConstraints()
     }
 
-    //Constraints Setup
+    // Constraints Setup
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Username TextField Constraints
-            usernameTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            usernameTextField.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -80),
-            usernameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            usernameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-
             // Email TextField Constraints
             emailTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emailTextField.topAnchor.constraint(equalTo: usernameTextField.bottomAnchor, constant: 20),
+            emailTextField.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -80),
             emailTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             emailTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            
+
             // Password TextField Constraints
             passwordTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 20),
             passwordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 
+            // Confirm Password TextField Constraints
+            confirmPasswordTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            confirmPasswordTextField.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 20),
+            confirmPasswordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            confirmPasswordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
             // Sign Up Button Constraints
             signUpButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            signUpButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 20),
+            signUpButton.topAnchor.constraint(equalTo: confirmPasswordTextField.bottomAnchor, constant: 20),
 
-            // Back Button Constraints
-            backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            // Cancel Button Constraints
+            cancelButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            cancelButton.topAnchor.constraint(equalTo: signUpButton.bottomAnchor, constant: 10),
         ])
     }
 
-    //Actions
+    // Actions
 
     @objc private func signUpButtonTapped() {
-        guard let username = usernameTextField.text, !username.isEmpty,
+        guard let email = emailTextField.text, !email.isEmpty,
               let password = passwordTextField.text, !password.isEmpty,
-              let email = emailTextField.text, !email.isEmpty else {
+              let confirmPassword = confirmPasswordTextField.text, !confirmPassword.isEmpty else {
             // Show an alert if any field is empty
-            showAlert(message: "Please fill in all fields.")
+            showAlert(message: "Please fill out all fields.")
             return
         }
 
-        // Handle sign-up logic here
-        print("Username: \(username), Password: \(password), Email: \(email)")
+        guard password == confirmPassword else {
+            // Show an alert if passwords do not match
+            showAlert(message: "Passwords do not match.")
+            return
+        }
+
+        Auth.auth().createUser(withEmail: email, password: password) { [weak self] authResult, error in
+            if let error = error {
+                self?.showAlert(message: error.localizedDescription)
+                return
+            }
+
+            // Handle sign up success
+            self?.dismiss(animated: true, completion: nil)
+        }
     }
 
-    @objc private func backButtonTapped() {
+    @objc private func cancelButtonTapped() {
         dismiss(animated: true, completion: nil)
     }
 
@@ -128,3 +158,4 @@ class SignUpViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
 }
+
