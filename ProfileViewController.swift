@@ -1,47 +1,44 @@
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseStorage
+import Combine
 
 class ProfileViewController: UIViewController, UITextFieldDelegate {
+
+    // MARK: - Properties
 
     var username: String? {
         didSet {
             nameLabel.text = username ?? "John Doe"
-            UserDefaults.standard.set(username, forKey: "username")
         }
     }
-    
+
     private let profileImageView = UIImageView()
     private let nameLabel = UILabel()
     private let bioTextField = UITextField()
     private let statusLabel = UILabel()
     private let statusButton = UIButton()
-    private let followButton = UIButton(type: .system)
     private let navigateButton = UIButton(type: .system)
-    private var isOnline: Bool = UserDefaults.standard.bool(forKey: "isOnlineStatus")
-    private var bioInput: String = UserDefaults.standard.string(forKey: "userInput") ?? ""
-    private var isFollowing: Bool = UserDefaults.standard.bool(forKey: "isFollowingStatus")
+    private var isOnline: Bool = false
+    private var bioInput: String = ""
+    private var isFollowing: Bool = false
 
     let viewModel = ProfileViewModel()
+    private var cancellables = Set<AnyCancellable>()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         setupViews()
+        loadProfileDataFromFirestore()
 
-        // Fetch username from UserDefaults and display it
-        if let savedUsername = UserDefaults.standard.string(forKey: "username") {
-            username = savedUsername
-        }
-
-        bioTextField.text = bioInput
-        updateStatusLabel()
-        //updateFollowButton()
-
-        viewModel.loadProfileImage()
-        if let profileImage = viewModel.profileImage {
-            profileImageView.image = profileImage
-        }
+        viewModel.$profileImage
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] image in
+                self?.profileImageView.image = image
+            }
+            .store(in: &cancellables)
 
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(selectProfileImage))
         profileImageView.addGestureRecognizer(tapGestureRecognizer)
@@ -49,18 +46,15 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
 
         bioTextField.addTarget(self, action: #selector(bioTextFieldDidChange(_:)), for: .editingChanged)
         bioTextField.delegate = self
+    }
 
-        /*Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            if let user = user {
-                self?.checkFollowingStatus(for: user.uid)
-            } else {
-                self?.followButton.isHidden = true
-            }
-        }*/
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadProfileDataFromFirestore() // Ensure the profile data is loaded every time the view appears
     }
 
     private func setupViews() {
-        view.backgroundColor = .white
+        // Setup code for views ...
 
         profileImageView.contentMode = .scaleAspectFill
         profileImageView.layer.cornerRadius = 40
@@ -68,27 +62,21 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         profileImageView.backgroundColor = .systemGray4
 
         nameLabel.font = .systemFont(ofSize: 22, weight: .semibold)
-        nameLabel.textColor = .black
+        nameLabel.textColor = .label // Adjusts to dark mode
 
         bioTextField.placeholder = "Bio"
         bioTextField.font = .systemFont(ofSize: 20)
         bioTextField.borderStyle = .roundedRect
-        bioTextField.backgroundColor = .clear
+        bioTextField.backgroundColor = .secondarySystemBackground // Adjusts to dark mode
+        bioTextField.textColor = .label // Adjusts to dark mode
 
         statusLabel.font = .systemFont(ofSize: 20)
-        statusLabel.textColor = .red
+        statusLabel.textColor = .systemRed
 
         statusButton.titleLabel?.font = .systemFont(ofSize: 20)
         statusButton.setTitleColor(.white, for: .normal)
         statusButton.layer.cornerRadius = 10
         statusButton.addTarget(self, action: #selector(statusButtonTapped), for: .touchUpInside)
-
-        /*followButton.titleLabel?.font = .systemFont(ofSize: 20)
-        followButton.setTitle("Follow", for: .normal)
-        followButton.addTarget(self, action: #selector(handleFollowButtonTapped), for: .touchUpInside)
-        followButton.backgroundColor = .blue
-        followButton.setTitleColor(.white, for: .normal)
-        followButton.layer.cornerRadius = 10*/
 
         navigateButton.setTitle("Go to Detail View", for: .normal)
         navigateButton.addTarget(self, action: #selector(navigateToDetailView), for: .touchUpInside)
@@ -98,7 +86,6 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         view.addSubview(bioTextField)
         view.addSubview(statusLabel)
         view.addSubview(statusButton)
-        //view.addSubview(followButton)
         view.addSubview(navigateButton)
 
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -106,7 +93,6 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         bioTextField.translatesAutoresizingMaskIntoConstraints = false
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         statusButton.translatesAutoresizingMaskIntoConstraints = false
-        //followButton.translatesAutoresizingMaskIntoConstraints = false
         navigateButton.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
@@ -131,21 +117,16 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
             statusButton.widthAnchor.constraint(equalToConstant: 200),
             statusButton.heightAnchor.constraint(equalToConstant: 44),
 
-            /*followButton.topAnchor.constraint(equalTo: statusButton.bottomAnchor, constant: 20),
-            followButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            followButton.widthAnchor.constraint(equalToConstant: 200),
-            followButton.heightAnchor.constraint(equalToConstant: 50),*/
-
+            navigateButton.topAnchor.constraint(equalTo: statusButton.bottomAnchor, constant: 20),
             navigateButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            navigateButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 20),
             navigateButton.widthAnchor.constraint(equalToConstant: 200),
-            navigateButton.heightAnchor.constraint(equalToConstant: 100)
+            navigateButton.heightAnchor.constraint(equalToConstant: 65) // Adjust height as needed
         ])
     }
 
     @objc private func bioTextFieldDidChange(_ textField: UITextField) {
         bioInput = textField.text ?? ""
-        UserDefaults.standard.set(bioInput, forKey: "userInput")
+        saveProfileDataToFirestore()
     }
 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -155,56 +136,16 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
 
     @objc private func selectProfileImage() {
         let imagePickerController = UIImagePickerController()
-        imagePickerController.delegate = self // Delegate assignment here
+        imagePickerController.delegate = self
         imagePickerController.sourceType = .photoLibrary
         present(imagePickerController, animated: true, completion: nil)
     }
 
     @objc private func statusButtonTapped() {
         isOnline.toggle()
-        UserDefaults.standard.set(isOnline, forKey: "isOnlineStatus")
+        saveProfileDataToFirestore()
         updateStatusLabel()
     }
-
-    /*@objc private func handleFollowButtonTapped() {
-        guard let user = Auth.auth().currentUser else {
-            print("User is not logged in")
-            return
-        }
-
-        let db = Firestore.firestore()
-        let userRef = db.collection("users").document(user.uid)
-        let followedUserId = "someUserId" // Replace with the actual user ID you want to follow
-
-        userRef.collection("following").document(followedUserId).getDocument { [weak self] (document, error) in
-            if let document = document, document.exists {
-                userRef.collection("following").document(followedUserId).delete { error in
-                    if let error = error {
-                        print("Error unfollowing user: \(error)")
-                    } else {
-                        self?.isFollowing = false
-                        self?.updateFollowButton()
-                        UserDefaults.standard.set(self?.isFollowing, forKey: "isFollowingStatus")
-                    }
-                }
-            } else {
-                userRef.collection("following").document(followedUserId).setData([:]) { error in
-                    if let error = error {
-                        print("Error following user: \(error)")
-                    } else {
-                        self?.isFollowing = true
-                        self?.updateFollowButton()
-                        UserDefaults.standard.set(self?.isFollowing, forKey: "isFollowingStatus")
-                    }
-                }
-            }
-        }
-    }*/
-
-    /*private func updateFollowButton() {
-        followButton.setTitle(isFollowing ? "Following" : "Follow", for: .normal)
-        followButton.backgroundColor = isFollowing ? .gray : .blue
-    }*/
 
     private func updateStatusLabel() {
         statusLabel.text = isOnline ? "Ready To Cook!" : "Offline"
@@ -217,29 +158,49 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         navigationController?.pushViewController(detailViewController, animated: true)
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        UserDefaults.standard.set(bioTextField.text, forKey: "userInput")
-        if let image = profileImageView.image {
-            viewModel.saveProfileImage(image: image)
+    func saveProfileDataToFirestore() {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        let userRef = Firestore.firestore().collection("users").document(userId)
+        let profileData: [String: Any] = [
+            "username": username ?? "",
+            "bio": bioInput,
+            "isOnline": isOnline,
+            "profileImageURL": viewModel.profileImageURL ?? "" // Save the URL of the profile image
+        ]
+        userRef.setData(profileData, merge: true) { error in
+            if let error = error {
+                print("Error saving profile data: \(error)")
+            }
         }
     }
 
-   /* func checkFollowingStatus(for userId: String) {
-        guard let currentUser = Auth.auth().currentUser else { return }
-        let db = Firestore.firestore()
-        let userRef = db.collection("users").document(currentUser.uid)
-        let followedUserId = userId
-
-        userRef.collection("following").document(followedUserId).getDocument { [weak self] (document, error) in
-            if let document = document, document.exists {
-                self?.isFollowing = true
-            } else {
-                self?.isFollowing = false
+    func loadProfileDataFromFirestore() {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        let userRef = Firestore.firestore().collection("users").document(userId)
+        userRef.getDocument { [weak self] document, error in
+            if let error = error {
+                print("Error loading profile data: \(error)")
+            } else if let document = document, document.exists {
+                let data = document.data()
+                self?.username = data?["username"] as? String
+                self?.bioInput = data?["bio"] as? String ?? ""
+                self?.isOnline = data?["isOnline"] as? Bool ?? false
+                if let profileImageURL = data?["profileImageURL"] as? String {
+                    self?.viewModel.loadProfileImage(from: profileImageURL)
+                }
+                DispatchQueue.main.async {
+                    self?.nameLabel.text = self?.username
+                    self?.bioTextField.text = self?.bioInput
+                    self?.updateStatusLabel()
+                }
             }
-            self?.updateFollowButton()
         }
-    }*/
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        saveProfileDataToFirestore()
+    }
 }
 
 extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -248,7 +209,7 @@ extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationCo
 
         if let image = info[.originalImage] as? UIImage {
             profileImageView.image = image
-            viewModel.saveProfileImage(image: image)
+            viewModel.saveProfileImage(image: image) // Save the image using the view model
         }
     }
 
@@ -257,11 +218,11 @@ extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationCo
     }
 }
 
+
 extension ProfileViewController: LoginViewControllerDelegate {
     func didLoginSuccessfully(username: String) {
         self.username = username
-        nameLabel.text = username // Update nameLabel text
-        // Additional setup or UI updates based on the username
+        nameLabel.text = username
     }
 }
 
