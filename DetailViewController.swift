@@ -19,15 +19,18 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .systemGray
         setupViews()
         searchTextField.addTarget(self, action: #selector(searchTextFieldDidChange(_:)), for: .editingChanged)
         loadUserData()
     }
 
     private func setupViews() {
-        view.backgroundColor = .white
+        
         followersLabel.text = "Followers: 0"
         followingLabel.text = "Following: 0"
+        followingLabel.textColor = .label
+        followersLabel.textColor = .label
         
         searchTextField.placeholder = "Search for users"
         searchTextField.borderStyle = .roundedRect

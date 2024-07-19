@@ -29,7 +29,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        view.backgroundColor = .systemGray
         setupViews()
         loadProfileDataFromFirestore()
 
