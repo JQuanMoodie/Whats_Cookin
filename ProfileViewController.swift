@@ -36,7 +36,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
 
         bioTextField.text = bioInput
         updateStatusLabel()
-        updateFollowButton()
+        //updateFollowButton()
 
         viewModel.loadProfileImage()
         if let profileImage = viewModel.profileImage {
@@ -50,13 +50,13 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         bioTextField.addTarget(self, action: #selector(bioTextFieldDidChange(_:)), for: .editingChanged)
         bioTextField.delegate = self
 
-        Auth.auth().addStateDidChangeListener { [weak self] _, user in
+        /*Auth.auth().addStateDidChangeListener { [weak self] _, user in
             if let user = user {
                 self?.checkFollowingStatus(for: user.uid)
             } else {
                 self?.followButton.isHidden = true
             }
-        }
+        }*/
     }
 
     private func setupViews() {
@@ -83,12 +83,12 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         statusButton.layer.cornerRadius = 10
         statusButton.addTarget(self, action: #selector(statusButtonTapped), for: .touchUpInside)
 
-        followButton.titleLabel?.font = .systemFont(ofSize: 20)
+        /*followButton.titleLabel?.font = .systemFont(ofSize: 20)
         followButton.setTitle("Follow", for: .normal)
         followButton.addTarget(self, action: #selector(handleFollowButtonTapped), for: .touchUpInside)
         followButton.backgroundColor = .blue
         followButton.setTitleColor(.white, for: .normal)
-        followButton.layer.cornerRadius = 10
+        followButton.layer.cornerRadius = 10*/
 
         navigateButton.setTitle("Go to Detail View", for: .normal)
         navigateButton.addTarget(self, action: #selector(navigateToDetailView), for: .touchUpInside)
@@ -106,7 +106,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         bioTextField.translatesAutoresizingMaskIntoConstraints = false
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         statusButton.translatesAutoresizingMaskIntoConstraints = false
-        followButton.translatesAutoresizingMaskIntoConstraints = false
+        //followButton.translatesAutoresizingMaskIntoConstraints = false
         navigateButton.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
@@ -131,13 +131,15 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
             statusButton.widthAnchor.constraint(equalToConstant: 200),
             statusButton.heightAnchor.constraint(equalToConstant: 44),
 
-            followButton.topAnchor.constraint(equalTo: statusButton.bottomAnchor, constant: 20),
+            /*followButton.topAnchor.constraint(equalTo: statusButton.bottomAnchor, constant: 20),
             followButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             followButton.widthAnchor.constraint(equalToConstant: 200),
-            followButton.heightAnchor.constraint(equalToConstant: 50),
+            followButton.heightAnchor.constraint(equalToConstant: 50),*/
 
             navigateButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            navigateButton.topAnchor.constraint(equalTo: followButton.bottomAnchor, constant: 20)
+            navigateButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 20),
+            navigateButton.widthAnchor.constraint(equalToConstant: 200),
+            navigateButton.heightAnchor.constraint(equalToConstant: 100)
         ])
     }
 
@@ -164,7 +166,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         updateStatusLabel()
     }
 
-    @objc private func handleFollowButtonTapped() {
+    /*@objc private func handleFollowButtonTapped() {
         guard let user = Auth.auth().currentUser else {
             print("User is not logged in")
             return
@@ -197,12 +199,12 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
                 }
             }
         }
-    }
+    }*/
 
-    private func updateFollowButton() {
+    /*private func updateFollowButton() {
         followButton.setTitle(isFollowing ? "Following" : "Follow", for: .normal)
         followButton.backgroundColor = isFollowing ? .gray : .blue
-    }
+    }*/
 
     private func updateStatusLabel() {
         statusLabel.text = isOnline ? "Ready To Cook!" : "Offline"
@@ -223,7 +225,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
-    func checkFollowingStatus(for userId: String) {
+   /* func checkFollowingStatus(for userId: String) {
         guard let currentUser = Auth.auth().currentUser else { return }
         let db = Firestore.firestore()
         let userRef = db.collection("users").document(currentUser.uid)
@@ -237,7 +239,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
             }
             self?.updateFollowButton()
         }
-    }
+    }*/
 }
 
 extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -262,4 +264,5 @@ extension ProfileViewController: LoginViewControllerDelegate {
         // Additional setup or UI updates based on the username
     }
 }
+
 

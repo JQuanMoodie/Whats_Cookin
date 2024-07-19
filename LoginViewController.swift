@@ -4,21 +4,17 @@
 //
 //  Created by Raisa Methila on 7/4/24.
 //
-
-
 import UIKit
 import FirebaseAuth
+import FirebaseFirestore
 
 protocol LoginViewControllerDelegate: AnyObject {
-    func didLoginSuccessfully()
+    func didLoginSuccessfully(username: String)
 }
 
 class LoginViewController: UIViewController {
 
-    // Delegate to handle login success
     weak var delegate: LoginViewControllerDelegate?
-
-    // UI Elements
 
     private let usernameTextField: UITextField = {
         let textField = UITextField()
@@ -28,34 +24,16 @@ class LoginViewController: UIViewController {
         return textField
     }()
 
-//    private let passwordTextField: UITextField = {
-//        let textField = UITextField()
-//        textField.placeholder = "Password"
-//        textField.isSecureTextEntry = true
-//        textField.borderStyle = .roundedRect
-//        textField.translatesAutoresizingMaskIntoConstraints = false
-//        return textField
-//    }()
-   
     private let passwordTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Password"
         textField.isSecureTextEntry = true
         textField.borderStyle = .roundedRect
         textField.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 12.0, *) {
-            textField.textContentType = .newPassword // Set it to newPassword to avoid strong password suggestion
-        } else {
-            textField.textContentType = .none // Fallback for earlier iOS versions
-        }
-        textField.autocorrectionType = .no // Disable autocorrection
-        textField.spellCheckingType = .no // Disable spell checking
         return textField
     }()
 
-
-
-    private let loginButton: UIButton = {
+    private lazy var loginButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Login", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -63,7 +41,7 @@ class LoginViewController: UIViewController {
         return button
     }()
 
-    private let signUpButton: UIButton = {
+    private lazy var signUpButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Sign Up", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -76,60 +54,71 @@ class LoginViewController: UIViewController {
 
         view.backgroundColor = .white
 
-        // Add subviews
         view.addSubview(usernameTextField)
         view.addSubview(passwordTextField)
         view.addSubview(loginButton)
         view.addSubview(signUpButton)
 
-        // Layout constraints
         setupConstraints()
     }
 
-    // Constraints Setup
-
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Username TextField Constraints
             usernameTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             usernameTextField.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -50),
             usernameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             usernameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 
-            // Password TextField Constraints
             passwordTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             passwordTextField.topAnchor.constraint(equalTo: usernameTextField.bottomAnchor, constant: 20),
             passwordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 
-            // Login Button Constraints
             loginButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loginButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 20),
 
-            // Sign Up Button Constraints
             signUpButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             signUpButton.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 10),
         ])
     }
 
-    // Actions
-
     @objc private func loginButtonTapped() {
-        guard let email = usernameTextField.text, !email.isEmpty,
+        guard let username = usernameTextField.text, !username.isEmpty,
               let password = passwordTextField.text, !password.isEmpty else {
-            // Show an alert if email or password is empty
-            showAlert(message: "Please enter both email and password.")
+            showAlert(message: "Please enter both username and password.")
             return
         }
 
-        Auth.auth().signIn(withEmail: email, password: password) { [weak self] authResult, error in
+        // Handle login logic here
+        Auth.auth().signIn(withEmail: username, password: password) { [weak self] authResult, error in
+            guard let self = self else { return }
+
             if let error = error {
-                self?.showAlert(message: error.localizedDescription)
+                print("Error signing in: \(error.localizedDescription)")
+                self.showAlert(message: "Error signing in.")
                 return
             }
 
-            // Handle login success
-            self?.handleLoginSuccess()
+            // If login is successful
+            if let user = authResult?.user {
+                self.fetchUsername(userID: user.uid) { username in
+                    self.handleLoginSuccess(username: username)
+                }
+            }
+        }
+    }
+
+    private func fetchUsername(userID: String, completion: @escaping (String) -> Void) {
+        let db = Firestore.firestore()
+        db.collection("users").document(userID).getDocument { document, error in
+            if let error = error {
+                print("Error fetching username: \(error.localizedDescription)")
+                completion("Unknown")
+                return
+            }
+
+            let username = document?.data()?["username"] as? String ?? "Unknown"
+            completion(username)
         }
     }
 
@@ -145,8 +134,7 @@ class LoginViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
 
-    // Call this method when login is successful
-    private func handleLoginSuccess() {
-        delegate?.didLoginSuccessfully()
+    private func handleLoginSuccess(username: String) {
+        delegate?.didLoginSuccessfully(username: username)
     }
 }

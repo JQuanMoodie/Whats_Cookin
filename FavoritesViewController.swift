@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import SwiftUI
 
 protocol FavoritesViewControllerDelegate: AnyObject {
     func homeTabTapped()
@@ -16,71 +15,68 @@ protocol TabBarDelegate: AnyObject {
     func tabBar()
 }
 
-class FavoritesViewController: UIViewController, UITabBarDelegate{
-    
+class FavoritesViewController: UIViewController, UITabBarDelegate {
+
     // Delegate to handle login success
     weak var delegate: FavoritesViewControllerDelegate?
     
-    //View of the table representing the favorite recipes
+    // View of the table representing the favorite recipes
     var tableView = UITableView()
     
-    //Array of recipes in the favorite list
+    // Array of recipes in the favorite list
     var favRecipes: [Recipe] = []
-    
+
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        if(item.tag == 0)
-        {
+        switch item.tag {
+        case 0:
             homeTabTapped()
-        }
-        if(item.tag == 1)
-        {
+        case 1:
             // Code for item 2
-        }
-        if(item.tag == 2)
-        {
-            // Code for item 1
-        }
-        if(item.tag == 3)
-        {
-            // Code for item 2
-        }
-        if(item.tag == 4)
-        {
-            // Code for item 1
+            break
+        case 2:
+            // Code for item 3
+            break
+        case 3:
+            // Code for item 4
+            break
+        case 4:
+            // Code for item 5
+            break
+        default:
+            break
         }
     }
-    
-    //function to add recipes to the favorites list
-    public func addFavRecipe(recipe: Recipe){
+
+    // Function to add recipes to the favorites list
+    public func addFavRecipe(recipe: Recipe) {
         favRecipes.append(recipe)
     }
-    
-    //function to remove a recipe from the favorites list
-    public func removeFavRecipe(recipe: Recipe){
-        let target = recipe.name
-        if let index = favRecipes.firstIndex(where: {$0.name == target}) {
+
+    // Function to remove a recipe from the favorites list
+    public func removeFavRecipe(recipe: Recipe) {
+        if let index = favRecipes.firstIndex(where: { $0.name == recipe.name }) {
             favRecipes.remove(at: index)
         }
     }
-    
-    //Creating Menu button
+
+    // Creating Menu button
     private let menuButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
-    //Creating the Search Text Box
+
+    // Creating the Search Text Box
     private let searchTextField: UITextField = {
-            let textField = UITextField()
-            textField.placeholder = "Search Through Your Favorite Recipes"
-            textField.borderStyle = .roundedRect
-            textField.translatesAutoresizingMaskIntoConstraints = false
-            return textField
-        }()
-    
-    //Creating the Profile Button
+        let textField = UITextField()
+        textField.placeholder = "Search Through Your Favorite Recipes"
+        textField.borderStyle = .roundedRect
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        return textField
+    }()
+
+    // Creating the Profile Button
     private let profileButton: UIButton = {
         let button = UIButton()
         button.setTitle("Profile", for: .normal)
@@ -88,8 +84,8 @@ class FavoritesViewController: UIViewController, UITabBarDelegate{
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
-    //Creating the app title
+
+    // Creating the app title
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "What's Cookin'"
@@ -97,8 +93,8 @@ class FavoritesViewController: UIViewController, UITabBarDelegate{
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
-    //Creating the bottom tab
+
+    // Creating the bottom tab
     private let tabBar: UITabBar = {
         let tabBar = UITabBar()
         let homeItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), tag: 0)
@@ -110,7 +106,7 @@ class FavoritesViewController: UIViewController, UITabBarDelegate{
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         return tabBar
     }()
-    
+
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             // Menu Button Constraints
@@ -143,30 +139,28 @@ class FavoritesViewController: UIViewController, UITabBarDelegate{
             tableView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        //Grab Dummy Data For Testing
+
+        // Grab Dummy Data For Testing
         favRecipes = fetchData()
-        
+
         // Set Up the Page Elements
         setUpPage()
-        
+
         // Layout Constraints
         setupConstraints()
-        
+
         profileButton.addTarget(self, action: #selector(profileButtonTapped), for: .touchUpInside)
-        }
-    @objc private func profileButtonTapped() {
-        let profileView = ProfileUIView()
-        let hostingController = UIHostingController(rootView: profileView)
-        hostingController.modalPresentationStyle = .fullScreen
-        present(hostingController, animated: true, completion: nil)
     }
-    
-    //Adds all page elemeents to the screen
-    private func setUpPage(){
+
+    @objc private func profileButtonTapped() {
+        // Handle profile button tap, transition to profile screen
+    }
+
+    // Adds all page elements to the screen
+    private func setUpPage() {
         view.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         view.addSubview(menuButton)
         view.addSubview(searchTextField)
@@ -175,55 +169,56 @@ class FavoritesViewController: UIViewController, UITabBarDelegate{
         view.addSubview(tabBar)
         configureTableView()
     }
-    
-    //Aligns the table with the rest of the elements
-    func configureTableView(){
+
+    // Aligns the table with the rest of the elements
+    func configureTableView() {
         view.addSubview(tableView)
         setTableViewDelegate()
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.rowHeight = 100;
+        tableView.rowHeight = 100
         tableView.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         tableView.register(RecipeCell.self, forCellReuseIdentifier: "RecipeCell")
         tableView.showsVerticalScrollIndicator = false
     }
-    
-    func setTableViewDelegate(){
+
+    func setTableViewDelegate() {
         tableView.delegate = self
         tableView.dataSource = self
     }
 }
 
-extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource{
-    
-    //Setting the number of rows for the table
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
+extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
+
+    // Setting the number of rows for the table
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return favRecipes.count
     }
-    
-    //Setting the data for each data cell
+
+    // Setting the data for each data cell
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "RecipeCell") as! RecipeCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "RecipeCell", for: indexPath) as! RecipeCell
         let recipe = favRecipes[indexPath.row]
-        
+
         cell.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         cell.set(recipe: recipe)
-        
-        let action = UIAction{action in
+
+        let action = UIAction { _ in
             self.removeFavRecipe(recipe: recipe)
+            tableView.reloadData()
         }
         cell.button.addAction(action, for: .touchUpInside)
-        
+
         return cell
     }
-    
-    //Setting the Action for when the user clicks the table cell
+
+    // Setting the action for when the user clicks the table cell
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
+        // Handle table cell selection
     }
 }
 
-//Dummy Data for Testing
-extension FavoritesViewController{
+// Dummy Data for Testing
+extension FavoritesViewController {
     func fetchData() -> [Recipe] {
         let recipe1 = Recipe(name: "Jamaican Oxtail with Rices and Peas")
         let recipe2 = Recipe(name: "Chef Tini's Famous Baked Macaroni & Cheese")
@@ -235,7 +230,7 @@ extension FavoritesViewController{
         let recipe8 = Recipe(name: "Smashed Cheeseburger with Fries")
         let recipe9 = Recipe(name: "Fettuccine Alfredo with Grilled Chicken")
         let recipe10 = Recipe(name: "New York Style Cheesecake")
-        
+
         addFavRecipe(recipe: recipe1)
         addFavRecipe(recipe: recipe2)
         addFavRecipe(recipe: recipe3)
@@ -249,15 +244,11 @@ extension FavoritesViewController{
         removeFavRecipe(recipe: recipe3)
         removeFavRecipe(recipe: recipe7)
         removeFavRecipe(recipe: recipe10)
-        
+
         return favRecipes
     }
-    
+
     private func homeTabTapped() {
         delegate?.homeTabTapped()
     }
-}
-
-#Preview {
-    FavoritesViewController()
 }
