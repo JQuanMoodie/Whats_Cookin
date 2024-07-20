@@ -30,6 +30,14 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         tableView.refreshControl = control
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd))
         fetchItems()
+
+        //button for importing missing items
+        let importButton = UIButton(type: .system)
+        importButton.setTitle("Import Ingredients", for: .normal)
+        importButton.addTarget(self, action: #selector(importMissingIngredients), for: .touchUpInside)
+        importButton.frame = CGRect(x: 0, y: 0, width: 200, height: 50)
+        importButton.center = view.center
+        view.addSubview(importButton)
     }
 
     //fetching item to screen
