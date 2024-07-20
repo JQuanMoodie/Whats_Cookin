@@ -225,5 +225,3 @@ extension ProfileViewController: LoginViewControllerDelegate {
         nameLabel.text = username
     }
 }
-
-
