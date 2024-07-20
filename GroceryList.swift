@@ -128,4 +128,4 @@ let groceryListVC = GroceryListViewController()
 let allIngredients = ["Tomatoes", "Onions", "Garlic", "Peppers"]
 let recipeIngredients = ["Tomatoes", "Garlic", "Basil", "Olive Oil"]
 let missingIngredients = groceryListVC.determineMissingIngredients(from: recipeIngredients)
-groceryListVC.importIngredients(ingredientNames: missingIngredients)
+groceryListVC.importIngredients(ingredientNames: missingIngredients) //fix this
