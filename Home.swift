@@ -15,11 +15,12 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         let button = UIButton()
         button.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(menuButtonTapped), for: .touchUpInside)
         return button
     }()
 
     private let profileButton: UIButton = {
-        let button = UIButton(type: .system) // Added type for system button style
+        let button = UIButton(type: .system)
         button.setTitle("Profile", for: .normal)
         button.setTitleColor(.black, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -95,6 +96,9 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         return tabBar
     }()
+    
+    private var sideMenuViewController: SidebarViewController!
+    private var isSideMenuVisible = false
 
     // MARK: - Lifecycle
 
@@ -113,6 +117,9 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         view.addSubview(recommendationsView)
         view.addSubview(tabBar)
 
+        // Setup side menu
+        setupSideMenu()
+
         // Layout constraints
         setupConstraints()
 
@@ -122,6 +129,41 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
 
         // Set tab bar delegate
         tabBar.delegate = self
+
+        // Add swipe gesture recognizer
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeLeft(_:)))
+        swipeLeft.direction = .left
+        sideMenuViewController.view.addGestureRecognizer(swipeLeft)
+    }
+    
+    private func setupSideMenu() {
+        sideMenuViewController = SidebarViewController()
+        addChild(sideMenuViewController)
+        view.addSubview(sideMenuViewController.view)
+        sideMenuViewController.didMove(toParent: self)
+
+        // Set the initial frame for the side menu off-screen
+        sideMenuViewController.view.frame = CGRect(x: -view.frame.width * 1, y: 0, width: view.frame.width * 1, height: view.frame.height)
+        sideMenuViewController.view.autoresizingMask = [.flexibleHeight, .flexibleRightMargin]
+    }
+
+    @objc private func menuButtonTapped() {
+        toggleSideMenu()
+    }
+
+    private func toggleSideMenu() {
+        let targetPosition: CGFloat = isSideMenuVisible ? -view.frame.width * 1 : 0
+        UIView.animate(withDuration: 0.3, animations: {
+            self.sideMenuViewController.view.frame.origin.x = targetPosition
+        }) { _ in
+            self.isSideMenuVisible.toggle()
+        }
+    }
+
+    @objc private func handleSwipeLeft(_ gesture: UISwipeGestureRecognizer) {
+        if isSideMenuVisible {
+            toggleSideMenu()
+        }
     }
 
     @objc private func navigateToProfileView() {
