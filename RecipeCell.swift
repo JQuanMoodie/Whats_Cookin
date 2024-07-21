@@ -7,6 +7,12 @@
 
 import UIKit
 
+struct Recipe{
+    var name: String
+    var ingredients: [String] = []
+    var favorited: Bool = false
+}
+
 class RecipeCell: UITableViewCell{
     
     //Recipe Name
