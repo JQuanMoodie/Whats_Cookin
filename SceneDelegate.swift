@@ -14,23 +14,33 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
 
-        let loginViewController = LoginViewController()
-        loginViewController.delegate = self
-
-        window.rootViewController = loginViewController
+        let splashScreenViewController = SplashScreenViewController()
+        window.rootViewController = splashScreenViewController
         self.window = window
         window.makeKeyAndVisible()
+
+        splashScreenViewController.simulateLoading {
+            let isLoggedIn = UserDefaults.standard.string(forKey: "username") != nil
+            let rootViewController: UIViewController
+            if isLoggedIn {
+                let homeViewController = HomeViewController()
+                rootViewController = UINavigationController(rootViewController: homeViewController)
+            } else {
+                let loginViewController = LoginViewController()
+                loginViewController.delegate = self
+                rootViewController = loginViewController
+            }
+            self.window?.rootViewController = rootViewController
+            self.window?.makeKeyAndVisible()
+        }
     }
 }
 
 extension SceneDelegate: LoginViewControllerDelegate {
     func didLoginSuccessfully(username: String) {
-        print("Login successful for user: \(username)") // Debugging statement
-        
-        // Save username to UserDefaults
+        print("Login successful for user: \(username)")
         UserDefaults.standard.set(username, forKey: "username")
 
-        // Navigate to HomeViewController after successful login
         let homeViewController = HomeViewController()
         let navigationController = UINavigationController(rootViewController: homeViewController)
         if let window = self.window {
@@ -39,4 +49,3 @@ extension SceneDelegate: LoginViewControllerDelegate {
         }
     }
 }
-
