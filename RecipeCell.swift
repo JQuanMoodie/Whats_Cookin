@@ -3,7 +3,7 @@
 //  WhatsCookin
 //
 //  Created by J’Quan Moodie on 7/14/24.
-//
+//  Edited by: Raisa Methila
 
 import UIKit
 
