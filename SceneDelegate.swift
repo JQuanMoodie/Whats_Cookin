@@ -9,6 +9,8 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    var logoutTimer: Timer?
+    let logoutTimeInterval: TimeInterval = 300 // 5 minutes
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
@@ -20,18 +22,46 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
 
         splashScreenViewController.simulateLoading {
-            let isLoggedIn = UserDefaults.standard.string(forKey: "username") != nil
-            let rootViewController: UIViewController
-            if isLoggedIn {
-                let homeViewController = HomeViewController()
-                rootViewController = UINavigationController(rootViewController: homeViewController)
-            } else {
-                let loginViewController = LoginViewController()
-                loginViewController.delegate = self
-                rootViewController = loginViewController
-            }
-            self.window?.rootViewController = rootViewController
-            self.window?.makeKeyAndVisible()
+            self.setRootViewController()
+        }
+    }
+
+    func setRootViewController() {
+        let isLoggedIn = UserDefaults.standard.string(forKey: "username") != nil
+        let rootViewController: UIViewController
+        if isLoggedIn {
+            let homeViewController = HomeViewController()
+            rootViewController = UINavigationController(rootViewController: homeViewController)
+            startLogoutTimer()
+        } else {
+            let loginViewController = LoginViewController()
+            loginViewController.delegate = self
+            rootViewController = loginViewController
+        }
+        self.window?.rootViewController = rootViewController
+        self.window?.makeKeyAndVisible()
+    }
+
+    func startLogoutTimer() {
+        logoutTimer?.invalidate()
+        logoutTimer = Timer.scheduledTimer(timeInterval: logoutTimeInterval, target: self, selector: #selector(logoutUser), userInfo: nil, repeats: false)
+    }
+
+    @objc func logoutUser() {
+        UserDefaults.standard.removeObject(forKey: "username")
+        let loginViewController = LoginViewController()
+        loginViewController.delegate = self
+        self.window?.rootViewController = loginViewController
+        self.window?.makeKeyAndVisible()
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        logoutTimer?.invalidate()
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        if UserDefaults.standard.string(forKey: "username") != nil {
+            startLogoutTimer()
         }
     }
 }
@@ -47,5 +77,7 @@ extension SceneDelegate: LoginViewControllerDelegate {
             window.rootViewController = navigationController
             window.makeKeyAndVisible()
         }
+        startLogoutTimer()
     }
 }
+
