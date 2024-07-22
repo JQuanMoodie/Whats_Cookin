@@ -187,6 +187,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
                 self?.isOnline = data?["isOnline"] as? Bool ?? false
                 if let profileImageURL = data?["profileImageURL"] as? String {
                     self?.viewModel.loadProfileImage(from: profileImageURL)
+                    self?.viewModel.profileImageURL = profileImageURL // Update the view model's profileImageURL
                 }
                 DispatchQueue.main.async {
                     self?.nameLabel.text = self?.username
@@ -217,7 +218,6 @@ extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationCo
         picker.dismiss(animated: true, completion: nil)
     }
 }
-
 
 extension ProfileViewController: LoginViewControllerDelegate {
     func didLoginSuccessfully(username: String) {
