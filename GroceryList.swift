@@ -3,8 +3,8 @@
 // Rachel Wu 
 
 
-import CloudKit
 import UIKit
+import FirebaseFirestore
 
 class GroceryListViewController: UIViewController, UITableViewDataSource {
 
@@ -13,13 +13,13 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         return tableView
     }()
-
-
-    //edit this
-    private let database = CKContainer.default().publicCloudDatabase
-    //                                         ^
+    
+    private let db = Firestore.firestore()
+    private let recipeService = RecipeService()
     
     var ingredients = [String]()
+    var recipes = [Recipee]()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Grocery List"
@@ -38,24 +38,27 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         importButton.frame = CGRect(x: 0, y: 0, width: 200, height: 50)
         importButton.center = view.center
         view.addSubview(importButton)
+
+        fetchRecipesFromAPI()
     }
 
-    //fetching item to screen
-    @objc func fetchItems(){
+    //fetch the items 
+    @objc func fetchItems() {
         tableView.refreshControl?.beginRefreshing()
-        let query = CKQuery(recordType: "GroceryItem", predicate: NSPredicate(value: true))
-        database.perform(query, inZoneWith: nil) { [weak self] records, error in
-            guard let records = records, error == nil else {
+        db.collection("groceryItems").getDocuments { [weak self] (querySnapshot, error) in
+            if let error = error {
+                print("Error getting documents: \(error)")
                 return
-            }
-            DispatchQueue.main.async {
-                self?.ingredients = records.compactMap({ $0.value(forKey: "name") as? String })
-                self?.tableView.reloadData()
-                self?.tableView.refreshControl?.endRefreshing()
+            } else {
+                self?.ingredients = querySnapshot?.documents.compactMap { $0.get("name") as? String } ?? []
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                    self?.tableView.refreshControl?.endRefreshing()
+                }
             }
         }
     }
-
+    
     //adding items
     @objc func didTapAdd() {
         let alert = UIAlertController(title: "Add Item", message: nil, preferredStyle: .alert)
@@ -71,48 +74,42 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         present(alert, animated: true)
     }
 
-    @objc func saveItem(name: String){
-        let record = CKRecord(recordType: "GroceryItem")
-        record.setValue(name, forKey: "name")
-        database.save(record) { [weak self] record, error in
-            if record != nil, error == nil {
-                DispatchQueue.main.asyncAfter(deadline: .now()+2){
-                    self?.fetchItems()
-                }
+    @objc func saveItem(name: String) {
+        let newItem: [String: Any] = ["name": name]
+        db.collection("groceryItems").addDocument(data: newItem) { [weak self] error in
+            if let error = error {
+                print("Error adding document: \(error)")
+            } else {
+                self?.fetchItems()
             }
         }
     }
-
-    // Import missing ingredients
+    //import missing ingredients
     func importIngredients(ingredientNames: [String]) {
-        let records = ingredientNames.map { name -> CKRecord in
-            let record = CKRecord(recordType: "GroceryItem")
-            record.setValue(name, forKey: "name")
-            return record
+        let batch = db.batch()
+        for name in ingredientNames {
+            let newItemRef = db.collection("groceryItems").document()
+            batch.setData(["name": name], forDocument: newItemRef)
         }
-        let operation = CKModifyRecordsOperation(recordsToSave: records)
-        operation.modifyRecordsCompletionBlock = { [weak self] savedRecords, deletedRecordIDs, error in
-            if error == nil {
-                DispatchQueue.main.async {
-                    self?.fetchItems()
-                }
+        batch.commit { [weak self] error in
+            if let error = error {
+                print("Error writing batch: \(error)")
+            } else {
+                self?.fetchItems()
             }
         }
-        database.add(operation)
     }
-
-    //missing ingredients from user input
+    //missing ingredients from user input 
     func determineMissingIngredients(from recipeIngredients: [String]) -> [String] {
         return recipeIngredients.filter { !ingredients.contains($0) }
     }
-
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         tableView.frame = view.bounds
     }
 
-    //TABLE 
+    //table
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return ingredients.count
     }
@@ -122,10 +119,17 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         cell.textLabel?.text = ingredients[indexPath.row]
         return cell
     }
-}
 
-let groceryListVC = GroceryListViewController()
-let allIngredients = ["Tomatoes", "Onions", "Garlic", "Peppers"]
-let recipeIngredients = ["Tomatoes", "Garlic", "Basil", "Olive Oil"]
-let missingIngredients = groceryListVC.determineMissingIngredients(from: recipeIngredients)
-groceryListVC.importIngredients(ingredientNames: missingIngredients) //fix this
+    //implementing API from RecipeAPIService.swift
+    func fetchRecipesFromAPI() {
+        recipeService.fetchRecipes(query: "pasta") { [weak self] result in
+            switch result {
+            case .success(let recipes):
+                self?.recipes = recipes
+                print("Fetched recipes: \(recipes)")
+            case .failure(let error):
+                print("Error fetching recipes: \(error)")
+            }
+        }
+    }
+}
