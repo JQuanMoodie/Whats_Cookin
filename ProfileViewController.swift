@@ -22,7 +22,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
     private let navigateButton = UIButton(type: .system)
     private var isOnline: Bool = false
     private var bioInput: String = ""
-    private var isFollowing: Bool = false
+    private let navigateButton1 = UIButton(type: .system)
 
     let viewModel = ProfileViewModel()
     private var cancellables = Set<AnyCancellable>()
@@ -78,8 +78,11 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         statusButton.layer.cornerRadius = 10
         statusButton.addTarget(self, action: #selector(statusButtonTapped), for: .touchUpInside)
 
-        navigateButton.setTitle("Go to Detail View", for: .normal)
+        navigateButton.setTitle("Followings and Followers", for: .normal)
         navigateButton.addTarget(self, action: #selector(navigateToDetailView), for: .touchUpInside)
+        navigateButton1.setTitle("User Feed", for: .normal)
+        navigateButton1.addTarget(self, action: #selector(navigateToUserFeedView), for: .touchUpInside)
+
 
         view.addSubview(profileImageView)
         view.addSubview(nameLabel)
@@ -87,6 +90,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         view.addSubview(statusLabel)
         view.addSubview(statusButton)
         view.addSubview(navigateButton)
+        view.addSubview(navigateButton1)
 
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -94,7 +98,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         statusButton.translatesAutoresizingMaskIntoConstraints = false
         navigateButton.translatesAutoresizingMaskIntoConstraints = false
-
+        navigateButton1.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             profileImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -120,7 +124,12 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
             navigateButton.topAnchor.constraint(equalTo: statusButton.bottomAnchor, constant: 20),
             navigateButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             navigateButton.widthAnchor.constraint(equalToConstant: 200),
-            navigateButton.heightAnchor.constraint(equalToConstant: 65) // Adjust height as needed
+            navigateButton.heightAnchor.constraint(equalToConstant: 65), // Adjust height as needed
+            
+            navigateButton1.topAnchor.constraint(equalTo: navigateButton.bottomAnchor, constant: 20),
+            navigateButton1.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            navigateButton1.widthAnchor.constraint(equalToConstant: 200),
+            navigateButton1.heightAnchor.constraint(equalToConstant: 80) // Adjust height as needed
         ])
     }
 
@@ -155,6 +164,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
 
     @objc private func navigateToDetailView() {
         let detailViewController = DetailViewController()
+        navigationController?.pushViewController(detailViewController, animated: true)
+    }
+    @objc private func navigateToUserFeedView() {
+        let detailViewController = UserFeedViewController()
         navigationController?.pushViewController(detailViewController, animated: true)
     }
 
