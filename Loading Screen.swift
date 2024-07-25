@@ -16,7 +16,7 @@ class SplashScreenViewController: UIViewController {
         return imageView
     }()
     
-    private let images = ["burger", "barbeque", "barbeque1"] // Names of the images in Assets.xcassets
+    private let images = ["barbeque1"] // Names of the images in Assets.xcassets
 
     override func viewDidLoad() {
         super.viewDidLoad()
