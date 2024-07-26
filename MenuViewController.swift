@@ -7,7 +7,7 @@
 import UIKit
 
 class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let channels = ["Breakfast", "Lunch", "Dinner", "Baking"]
+    let channels = ["Breakfast", "Lunch", "Dinner", "Dessert"]
     var tableView: UITableView!
     var dismissSidebar: (() -> Void)?
 
@@ -91,7 +91,7 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
             imageName = "sun.max.fill"
         case "Dinner":
             imageName = "moon.fill"
-        case "Baking":
+        case "Dessert":
             imageName = "flame.fill"
         default:
             imageName = "questionmark.circle.fill"
@@ -101,9 +101,47 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
         return cell
     }
 
+  
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        NotificationCenter.default.post(name: Notification.Name("ChannelSelected"), object: channels[indexPath.row])
-    }
-}
+            let selectedChannel = channels[indexPath.row]
+            
+            if selectedChannel == "Breakfast" {
+                let breakfastVC = BreakfastViewController()
+                if let navController = navigationController {
+                    navController.pushViewController(breakfastVC, animated: true)
+                } else {
+                    let navController = UINavigationController(rootViewController: breakfastVC)
+                    present(navController, animated: true, completion: nil)
+                }
+            } else if selectedChannel == "Lunch" {
+                let lunchVC = LunchViewController()
+                if let navController = navigationController {
+                    navController.pushViewController(lunchVC, animated: true)
+                } else {
+                    let navController = UINavigationController(rootViewController: lunchVC)
+                    present(navController, animated: true, completion: nil)
+                }
+            } else if selectedChannel == "Dinner" {
+                let dinnerVC = DinnerViewController()
+                if let navController = navigationController {
+                    navController.pushViewController(dinnerVC, animated: true)
+                } else {
+                    let navController = UINavigationController(rootViewController: dinnerVC)
+                    present(navController, animated: true, completion: nil)
+                }
+            } else if selectedChannel == "Dessert" {
+                let dessertVC = DessertViewController()
+                if let navController = navigationController {
+                    navController.pushViewController(dessertVC, animated: true)
+                } else {
+                    let navController = UINavigationController(rootViewController: dessertVC)
+                    present(navController, animated: true, completion: nil)
+                }
+            }
+            
+            NotificationCenter.default.post(name: Notification.Name("ChannelSelected"), object: selectedChannel)
+        }
+   }
 
 
