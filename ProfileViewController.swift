@@ -14,8 +14,8 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
-    private let profileImageView = UIImageView()
-    private let nameLabel = UILabel()
+     let profileImageView = UIImageView()
+     let nameLabel = UILabel()
     private let bioTextField = UITextField()
     private let statusLabel = UILabel()
     private let statusButton = UIButton()
