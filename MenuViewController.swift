@@ -106,14 +106,14 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
             let selectedChannel = channels[indexPath.row]
             
-            if selectedChannel == "Breakfast" {
-                let breakfastVC = BreakfastViewController()
-                if let navController = navigationController {
-                    navController.pushViewController(breakfastVC, animated: true)
-                } else {
-                    let navController = UINavigationController(rootViewController: breakfastVC)
-                    present(navController, animated: true, completion: nil)
-                }
+        if selectedChannel == "Breakfast" {
+            let breakfastVC = BreakfastViewController()
+            if let navController = navigationController {
+                navController.pushViewController(breakfastVC, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: breakfastVC)
+                present(navController, animated: true, completion: nil)
+            }
             } else if selectedChannel == "Lunch" {
                 let lunchVC = LunchViewController()
                 if let navController = navigationController {
@@ -143,5 +143,3 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
             NotificationCenter.default.post(name: Notification.Name("ChannelSelected"), object: selectedChannel)
         }
    }
-
-
