@@ -39,6 +39,15 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         importButton.center = view.center
         view.addSubview(importButton)
 
+        //button for navigating to shopping cart
+        let cartButton = UIButton(type: .system)
+        cartButton.setTitle("Shopping Cart", for: .normal)
+        cartButton.addTarget(self, action: #selector(openShoppingCart), for: .touchUpInside)
+        cartButton.frame = CGRect(x: 0, y: 60, width: 200, height: 50)
+        cartButton.center = CGPoint(x: view.center.x, y: view.center.y + 60)
+        view.addSubview(cartButton)
+
+        //API 
         fetchRecipesFromAPI()
     }
 
@@ -85,6 +94,13 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         }
     }
     //import missing ingredients
+
+    @objc func importMissingIngredients() {
+        let recipeIngredients = recipes.flatMap { $0.ingredients }
+        let missingIngredients = determineMissingIngredients(from: recipeIngredients)
+        importIngredients(ingredientNames: missingIngredients)
+    }
+
     func importIngredients(ingredientNames: [String]) {
         let batch = db.batch()
         for name in ingredientNames {
@@ -131,5 +147,10 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
                 print("Error fetching recipes: \(error)")
             }
         }
+    }
+    //open shopping cart
+    @objc func openShoppingCart() {
+        let shoppingCartVC = ShoppingCartViewController()
+        navigationController?.pushViewController(shoppingCartVC, animated: true)
     }
 }
