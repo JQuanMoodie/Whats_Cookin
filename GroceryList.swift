@@ -58,7 +58,7 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
             }
         }
     }
-    
+
     //adding items
     @objc func didTapAdd() {
         let alert = UIAlertController(title: "Add Item", message: nil, preferredStyle: .alert)
