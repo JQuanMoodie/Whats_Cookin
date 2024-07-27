@@ -38,12 +38,12 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
 
     private func setupProfileView() {
-        profileContainerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 224)
+        profileContainerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 220)
         profileContainerView.backgroundColor = .lightGray
         
         addChild(profileViewController)
         profileContainerView.addSubview(profileViewController.view)
-        profileViewController.view.frame = CGRect(x: 5, y: 5, width: profileContainerView.bounds.width - 10, height: profileContainerView.bounds.height - 10)
+        profileViewController.view.frame = CGRect(x: 4, y: 4, width: profileContainerView.bounds.width - 10, height: profileContainerView.bounds.height - 10)
         profileViewController.didMove(toParent: self)
         
         view.addSubview(profileContainerView)
@@ -115,13 +115,14 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                 present(navController, animated: true, completion: nil)
             }
             } else if selectedChannel == "Lunch" {
-                let lunchVC = LunchViewController()
-                if let navController = navigationController {
-                    navController.pushViewController(lunchVC, animated: true)
-                } else {
-                    let navController = UINavigationController(rootViewController: lunchVC)
-                    present(navController, animated: true, completion: nil)
-                }
+            let lunchVC = LunchViewController()
+            if let navController = navigationController {
+                navController.pushViewController(lunchVC, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: lunchVC)
+                present(navController, animated: true, completion: nil)
+            }
+        
             } else if selectedChannel == "Dinner" {
                 let dinnerVC = DinnerViewController()
                 if let navController = navigationController {
@@ -143,3 +144,5 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
             NotificationCenter.default.post(name: Notification.Name("ChannelSelected"), object: selectedChannel)
         }
    }
+
+
