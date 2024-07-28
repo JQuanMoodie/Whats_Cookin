@@ -7,7 +7,7 @@
 import UIKit
 
 class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let channels = ["Breakfast", "Lunch", "Dinner", "Dessert"]
+    let channels = ["Breakfast", "Lunch", "Dinner", "Dessert","Shopping Cart"]
     var tableView: UITableView!
     var dismissSidebar: (() -> Void)?
 
@@ -38,12 +38,12 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
 
     private func setupProfileView() {
-        profileContainerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 220)
+        profileContainerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 224)
         profileContainerView.backgroundColor = .lightGray
         
         addChild(profileViewController)
         profileContainerView.addSubview(profileViewController.view)
-        profileViewController.view.frame = CGRect(x: 4, y: 4, width: profileContainerView.bounds.width - 10, height: profileContainerView.bounds.height - 10)
+        profileViewController.view.frame = CGRect(x: 5, y: 5, width: profileContainerView.bounds.width - 10, height: profileContainerView.bounds.height - 10)
         profileViewController.didMove(toParent: self)
         
         view.addSubview(profileContainerView)
@@ -93,6 +93,8 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
             imageName = "moon.fill"
         case "Dessert":
             imageName = "flame.fill"
+        case "Shopping Cart":
+            imageName = "cart"
         default:
             imageName = "questionmark.circle.fill"
         }
@@ -106,23 +108,22 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
             let selectedChannel = channels[indexPath.row]
             
-        if selectedChannel == "Breakfast" {
-            let breakfastVC = BreakfastViewController()
-            if let navController = navigationController {
-                navController.pushViewController(breakfastVC, animated: true)
-            } else {
-                let navController = UINavigationController(rootViewController: breakfastVC)
-                present(navController, animated: true, completion: nil)
-            }
+            if selectedChannel == "Breakfast" {
+                let breakfastVC = BreakfastViewController()
+                if let navController = navigationController {
+                    navController.pushViewController(breakfastVC, animated: true)
+                } else {
+                    let navController = UINavigationController(rootViewController: breakfastVC)
+                    present(navController, animated: true, completion: nil)
+                }
             } else if selectedChannel == "Lunch" {
-            let lunchVC = LunchViewController()
-            if let navController = navigationController {
-                navController.pushViewController(lunchVC, animated: true)
-            } else {
-                let navController = UINavigationController(rootViewController: lunchVC)
-                present(navController, animated: true, completion: nil)
-            }
-        
+                let lunchVC = LunchViewController()
+                if let navController = navigationController {
+                    navController.pushViewController(lunchVC, animated: true)
+                } else {
+                    let navController = UINavigationController(rootViewController: lunchVC)
+                    present(navController, animated: true, completion: nil)
+                }
             } else if selectedChannel == "Dinner" {
                 let dinnerVC = DinnerViewController()
                 if let navController = navigationController {
@@ -137,6 +138,14 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                     navController.pushViewController(dessertVC, animated: true)
                 } else {
                     let navController = UINavigationController(rootViewController: dessertVC)
+                    present(navController, animated: true, completion: nil)
+                }
+            }else if selectedChannel == "Shopping Cart" {
+                let shoppingVC = ShoppingCartViewController()
+                if let navController = navigationController {
+                    navController.pushViewController(shoppingVC, animated: true)
+                } else {
+                    let navController = UINavigationController(rootViewController: shoppingVC)
                     present(navController, animated: true, completion: nil)
                 }
             }
