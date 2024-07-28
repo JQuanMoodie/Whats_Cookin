@@ -4,6 +4,7 @@
 
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 class ShoppingCartViewController: UIViewController, UITableViewDataSource {
 
@@ -30,8 +31,9 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
     }
 
     @objc func fetchCartItems() {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
         tableView.refreshControl?.beginRefreshing()
-        db.collection("shoppingCartItems").getDocuments { [weak self] (querySnapshot, error) in
+        db.collection("users").document(userId).collection("shoppingCartItems").getDocuments { [weak self] (querySnapshot, error) in
             if let error = error {
                 print("Error getting documents: \(error)")
                 return
@@ -60,8 +62,9 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
     }
 
     @objc func saveCartItem(name: String) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
         let newItem: [String: Any] = ["name": name]
-        db.collection("shoppingCartItems").addDocument(data: newItem) { [weak self] error in
+        db.collection("users").document(userId).collection("shoppingCartItems").addDocument(data: newItem) { [weak self] error in
             if let error = error {
                 print("Error adding document: \(error)")
             } else {
@@ -85,3 +88,4 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
         return cell
     }
 }
+

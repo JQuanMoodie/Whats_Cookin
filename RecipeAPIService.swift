@@ -11,8 +11,16 @@ struct Recipee: Identifiable, Decodable, Encodable {
     let id: Int
     let title: String
     let image: String
+    let ingredients: [Ingredient]
     // Add other properties if needed and ensure they conform to `Encodable`
 }
+
+struct Ingredient: Identifiable, Decodable, Encodable {
+    let id: Int
+    let name: String
+    let quantity: String
+}
+
 
 // Define an enum for API errors
 enum APIError: Error {

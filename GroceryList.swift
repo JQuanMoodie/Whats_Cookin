@@ -5,9 +5,10 @@
 
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 class GroceryListViewController: UIViewController, UITableViewDataSource {
-
+    
     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
@@ -19,7 +20,8 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
     
     var ingredients = [String]()
     var recipes = [Recipee]()
-
+    var availableIngredients: [Ingredient] = [] // Store available ingredients
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Grocery List"
@@ -30,31 +32,31 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         tableView.refreshControl = control
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd))
         fetchItems()
-
-        //button for importing missing items
+        
+        // Button for importing missing items
         let importButton = UIButton(type: .system)
         importButton.setTitle("Import Ingredients", for: .normal)
         importButton.addTarget(self, action: #selector(importMissingIngredients), for: .touchUpInside)
         importButton.frame = CGRect(x: 0, y: 0, width: 200, height: 50)
         importButton.center = view.center
         view.addSubview(importButton)
-
-        //button for navigating to shopping cart
+        
+        // Button for navigating to shopping cart
         let cartButton = UIButton(type: .system)
         cartButton.setTitle("Shopping Cart", for: .normal)
         cartButton.addTarget(self, action: #selector(openShoppingCart), for: .touchUpInside)
         cartButton.frame = CGRect(x: 0, y: 60, width: 200, height: 50)
         cartButton.center = CGPoint(x: view.center.x, y: view.center.y + 60)
         view.addSubview(cartButton)
-
-        //API 
+        
+        // Fetch recipes from API
         fetchRecipesFromAPI()
     }
-
-    //fetch the items 
+    
     @objc func fetchItems() {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
         tableView.refreshControl?.beginRefreshing()
-        db.collection("groceryItems").getDocuments { [weak self] (querySnapshot, error) in
+        db.collection("users").document(userId).collection("groceryItems").getDocuments { [weak self] (querySnapshot, error) in
             if let error = error {
                 print("Error getting documents: \(error)")
                 return
@@ -67,8 +69,7 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
             }
         }
     }
-
-    //adding items
+    
     @objc func didTapAdd() {
         let alert = UIAlertController(title: "Add Item", message: nil, preferredStyle: .alert)
         alert.addTextField { field in
@@ -82,10 +83,11 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         }))
         present(alert, animated: true)
     }
-
+    
     @objc func saveItem(name: String) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
         let newItem: [String: Any] = ["name": name]
-        db.collection("groceryItems").addDocument(data: newItem) { [weak self] error in
+        db.collection("users").document(userId).collection("groceryItems").addDocument(data: newItem) { [weak self] error in
             if let error = error {
                 print("Error adding document: \(error)")
             } else {
@@ -93,18 +95,24 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
             }
         }
     }
-    //import missing ingredients
-
+    
     @objc func importMissingIngredients() {
         let recipeIngredients = recipes.flatMap { $0.ingredients }
         let missingIngredients = determineMissingIngredients(from: recipeIngredients)
-        importIngredients(ingredientNames: missingIngredients)
+        importIngredients(ingredientNames: missingIngredients.map { $0.name })
     }
-
+    
+    func determineMissingIngredients(from recipeIngredients: [Ingredient]) -> [Ingredient] {
+        return recipeIngredients.filter { recipeIngredient in
+            !availableIngredients.contains(where: { $0.name == recipeIngredient.name })
+        }
+    }
+    
     func importIngredients(ingredientNames: [String]) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
         let batch = db.batch()
         for name in ingredientNames {
-            let newItemRef = db.collection("groceryItems").document()
+            let newItemRef = db.collection("users").document(userId).collection("groceryItems").document()
             batch.setData(["name": name], forDocument: newItemRef)
         }
         batch.commit { [weak self] error in
@@ -115,28 +123,22 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
             }
         }
     }
-    //missing ingredients from user input 
-    func determineMissingIngredients(from recipeIngredients: [String]) -> [String] {
-        return recipeIngredients.filter { !ingredients.contains($0) }
-    }
-
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         tableView.frame = view.bounds
     }
-
-    //table
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return ingredients.count
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = ingredients[indexPath.row]
         return cell
     }
-
-    //implementing API from RecipeAPIService.swift
+    
     func fetchRecipesFromAPI() {
         recipeService.fetchRecipes(query: "pasta") { [weak self] result in
             switch result {
@@ -148,7 +150,7 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
             }
         }
     }
-    //open shopping cart
+    
     @objc func openShoppingCart() {
         let shoppingCartVC = ShoppingCartViewController()
         navigationController?.pushViewController(shoppingCartVC, animated: true)
