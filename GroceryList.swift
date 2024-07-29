@@ -7,7 +7,7 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
-class GroceryListViewController: UIViewController, UITableViewDataSource {
+class GroceryListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     let tableView: UITableView = {
         let tableView = UITableView()
@@ -27,6 +27,7 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         title = "Grocery List"
         view.addSubview(tableView)
         tableView.dataSource = self
+        tableView.delegate = self // Set delegate
         let control = UIRefreshControl()
         control.addTarget(self, action: #selector(fetchItems), for: .valueChanged)
         tableView.refreshControl = control
@@ -59,7 +60,6 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         db.collection("users").document(userId).collection("groceryItems").getDocuments { [weak self] (querySnapshot, error) in
             if let error = error {
                 print("Error getting documents: \(error)")
-                return
             } else {
                 self?.ingredients = querySnapshot?.documents.compactMap { $0.get("name") as? String } ?? []
                 DispatchQueue.main.async {
@@ -85,21 +85,28 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
     }
     
     @objc func saveItem(name: String) {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        let newItem: [String: Any] = ["name": name]
-        db.collection("users").document(userId).collection("groceryItems").addDocument(data: newItem) { [weak self] error in
-            if let error = error {
-                print("Error adding document: \(error)")
-            } else {
-                self?.fetchItems()
-            }
+    guard let userId = Auth.auth().currentUser?.uid else { 
+        print("User not authenticated.")
+        return 
+    }
+    let newItem: [String: Any] = ["name": name]
+    db.collection("users").document(userId).collection("groceryItems").addDocument(data: newItem) { [weak self] error in
+        if let error = error {
+            print("Error adding document: \(error.localizedDescription)")
+            let alert = UIAlertController(title: "Error", message: "Failed to add item. Please try again.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self?.present(alert, animated: true)
+        } else {
+            self?.fetchItems()
         }
     }
+}
+
     
     @objc func importMissingIngredients() {
         let recipeIngredients = recipes.flatMap { $0.ingredients }
         let missingIngredients = determineMissingIngredients(from: recipeIngredients)
-        importIngredients(ingredientNames: missingIngredients.map { $0.name })
+        importIngredients(ingredients: missingIngredients)
     }
     
     func determineMissingIngredients(from recipeIngredients: [Ingredient]) -> [Ingredient] {
@@ -108,12 +115,12 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         }
     }
     
-    func importIngredients(ingredientNames: [String]) {
+    func importIngredients(ingredients: [Ingredient]) {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         let batch = db.batch()
-        for name in ingredientNames {
+        for ingredient in ingredients {
             let newItemRef = db.collection("users").document(userId).collection("groceryItems").document()
-            batch.setData(["name": name], forDocument: newItemRef)
+            batch.setData(["name": ingredient.name], forDocument: newItemRef)
         }
         batch.commit { [weak self] error in
             if let error = error {
@@ -139,6 +146,40 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
         return cell
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let ingredient = ingredients[indexPath.row]
+        shopForIngredient(ingredient: ingredient)
+    }
+    
+    // Enable swipe-to-delete
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            let ingredient = ingredients[indexPath.row]
+            deleteItem(name: ingredient)
+        }
+    }
+    
+    func deleteItem(name: String) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        db.collection("users").document(userId).collection("groceryItems").whereField("name", isEqualTo: name).getDocuments { [weak self] (querySnapshot, error) in
+            if let error = error {
+                print("Error deleting document: \(error)")
+                return
+            } else {
+                for document in querySnapshot!.documents {
+                    document.reference.delete { error in
+                        if let error = error {
+                            print("Error removing document: \(error)")
+                        } else {
+                            self?.fetchItems()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     func fetchRecipesFromAPI() {
         recipeService.fetchRecipes(query: "pasta") { [weak self] result in
             switch result {
@@ -154,5 +195,56 @@ class GroceryListViewController: UIViewController, UITableViewDataSource {
     @objc func openShoppingCart() {
         let shoppingCartVC = ShoppingCartViewController()
         navigationController?.pushViewController(shoppingCartVC, animated: true)
+    }
+    
+    func shopForIngredient(ingredient: String) {
+        let apiKey = "4797a64albcc4191b17e6da86f903914"
+        let query = ingredient.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let urlString = "https://api.spoonacular.com/food/products/search?query=\(query)&apiKey=\(apiKey)"
+        guard let url = URL(string: urlString) else { return }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Error: \(error)")
+                return
+            }
+            
+            guard let data = data else { return }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let products = json["products"] as? [[String: Any]] {
+                    DispatchQueue.main.async {
+                        self.showProducts(products: products)
+                    }
+                }
+            } catch {
+                print("Error parsing JSON: \(error)")
+            }
+        }
+        
+        task.resume()
+    }
+    
+    func showProducts(products: [[String: Any]]) {
+        let alert = UIAlertController(title: "Products Found", message: nil, preferredStyle: .actionSheet)
+        for product in products {
+            if let title = product["title"] as? String {
+                alert.addAction(UIAlertAction(title: title, style: .default, handler: { _ in
+                    if let productId = product["id"] as? Int {
+                        self.openProductInBrowser(productId: productId)
+                    }
+                }))
+            }
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true)
+    }
+    
+    func openProductInBrowser(productId: Int) {
+        let urlString = "https://spoonacular.com/food-products/\(productId)"
+        if let url = URL(string: urlString) {
+            UIApplication.shared.open(url)
+        }
     }
 }
