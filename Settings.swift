@@ -1,4 +1,3 @@
-//
 //  Settings.swift
 //  what'sCookin
 //
@@ -27,6 +26,14 @@ class SettingsViewController: UIViewController {
         return button
     }()
 
+    private let notificationsButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Notifications", for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(notificationsButtonTapped), for: .touchUpInside)
+        return button
+    }()
+
     private let fontSizeLabel: UILabel = {
         let label = UILabel()
         label.text = "Font size:"
@@ -49,6 +56,14 @@ class SettingsViewController: UIViewController {
         return button
     }()
 
+    private let deleteAccountButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Delete Account", for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(deleteAccountButtonTapped), for: .touchUpInside)
+        return button
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -57,9 +72,11 @@ class SettingsViewController: UIViewController {
         // Add subviews
         view.addSubview(emailLabel)
         view.addSubview(changePasswordButton)
+        view.addSubview(notificationsButton)
         view.addSubview(fontSizeLabel)
         view.addSubview(fontSizeSegmentedControl)
         view.addSubview(logoutButton)
+        view.addSubview(deleteAccountButton)
 
         // Layout constraints
         setupConstraints()
@@ -79,9 +96,15 @@ class SettingsViewController: UIViewController {
             changePasswordButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             changePasswordButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 
+            // Notifications Button Constraints
+            notificationsButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            notificationsButton.topAnchor.constraint(equalTo: changePasswordButton.bottomAnchor, constant: 20),
+            notificationsButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            notificationsButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
             // Font Size Label Constraints
             fontSizeLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            fontSizeLabel.topAnchor.constraint(equalTo: changePasswordButton.bottomAnchor, constant: 20),
+            fontSizeLabel.topAnchor.constraint(equalTo: notificationsButton.bottomAnchor, constant: 20),
 
             // Font Size Segmented Control Constraints
             fontSizeSegmentedControl.centerYAnchor.constraint(equalTo: fontSizeLabel.centerYAnchor),
@@ -92,7 +115,13 @@ class SettingsViewController: UIViewController {
             logoutButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             logoutButton.topAnchor.constraint(equalTo: fontSizeSegmentedControl.bottomAnchor, constant: 40),
             logoutButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            logoutButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            logoutButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            // Delete Account Button Constraints
+            deleteAccountButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            deleteAccountButton.topAnchor.constraint(equalTo: logoutButton.bottomAnchor, constant: 20),
+            deleteAccountButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            deleteAccountButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
     }
 
@@ -101,7 +130,15 @@ class SettingsViewController: UIViewController {
         // Handle change password button tap
     }
 
+    @objc private func notificationsButtonTapped() {
+        // Handle notifications button tap
+    }
+
     @objc private func logoutButtonTapped() {
         // Handle logout button tap
+    }
+
+    @objc private func deleteAccountButtonTapped() {
+        // Handle delete account button tap
     }
 }
