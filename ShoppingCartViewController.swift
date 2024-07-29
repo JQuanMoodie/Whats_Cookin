@@ -7,7 +7,7 @@ import FirebaseFirestore
 import FirebaseAuth
 
 class ShoppingCartViewController: UIViewController, UITableViewDataSource {
-
+    
     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
@@ -69,6 +69,34 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
                 print("Error adding document: \(error)")
             } else {
                 self?.fetchCartItems()
+            }
+        }
+    }
+
+    // Enable swipe-to-delete
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            let item = cartItems[indexPath.row]
+            deleteCartItem(name: item)
+        }
+    }
+
+    func deleteCartItem(name: String) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        db.collection("users").document(userId).collection("shoppingCartItems").whereField("name", isEqualTo: name).getDocuments { [weak self] (querySnapshot, error) in
+            if let error = error {
+                print("Error deleting document: \(error)")
+                return
+            } else {
+                for document in querySnapshot!.documents {
+                    document.reference.delete { error in
+                        if let error = error {
+                            print("Error removing document: \(error)")
+                        } else {
+                            self?.fetchCartItems()
+                        }
+                    }
+                }
             }
         }
     }
