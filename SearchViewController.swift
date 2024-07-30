@@ -3,15 +3,20 @@
 //  what'sCookin
 //
 //  Created by Raisa Methila on 7/12/24.
-//
+//  Edited by J'Quan Moodie
 
 import UIKit
 
 class SearchViewController: UIViewController {
 
+    private let recipeService = RecipeService()
+    var ingredients = [String]()
+    var recipes = [Recipee]()
+    var onlyInclude = true
+
     private let includeLabel: UILabel = {
         let label = UILabel()
-        label.text = "Include ingredients"
+        label.text = "Search With Ingredients"
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -19,7 +24,7 @@ class SearchViewController: UIViewController {
 
     private let includeTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Use commas to separate ingredients"
+        textField.placeholder = "Use Commas to Separate Ingredients"
         textField.borderStyle = .roundedRect
         textField.backgroundColor = UIColor(white: 1, alpha: 0.5)
         textField.translatesAutoresizingMaskIntoConstraints = false
@@ -28,7 +33,7 @@ class SearchViewController: UIViewController {
 
     private let selectOneLabel: UILabel = {
         let label = UILabel()
-        label.text = "Select one"
+        label.text = "Excluding Ingredients"
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -36,8 +41,8 @@ class SearchViewController: UIViewController {
 
     private let orButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("or", for: .normal)
-        button.backgroundColor = .white
+        button.setTitle("No", for: .normal)
+        button.backgroundColor = .gray
         button.layer.cornerRadius = 10
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.gray.cgColor
@@ -47,7 +52,7 @@ class SearchViewController: UIViewController {
 
     private let andButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("and", for: .normal)
+        button.setTitle("Yes", for: .normal)
         button.backgroundColor = .white
         button.layer.cornerRadius = 10
         button.layer.borderWidth = 1
@@ -58,7 +63,7 @@ class SearchViewController: UIViewController {
 
     private let excludeLabel: UILabel = {
         let label = UILabel()
-        label.text = "Exclude ingredients"
+        label.text = "List Them Here"
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -66,7 +71,7 @@ class SearchViewController: UIViewController {
 
     private let excludeTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Use commas to separate ingredients"
+        textField.placeholder = "Use Commas to Separate Ingredients"
         textField.borderStyle = .roundedRect
         textField.backgroundColor = UIColor(white: 1, alpha: 0.5)
         textField.translatesAutoresizingMaskIntoConstraints = false
@@ -91,22 +96,12 @@ class SearchViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
-  private let backButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Back", for: .normal)
-        button.backgroundColor = UIColor.blue
-        button.layer.cornerRadius = 10
-        button.setTitleColor(.white, for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         view.backgroundColor = UIColor(red: 0.5, green: 0.7, blue: 0.9, alpha: 1.0)
-
+        
         // Add subviews
         view.addSubview(includeLabel)
         view.addSubview(includeTextField)
@@ -117,16 +112,65 @@ class SearchViewController: UIViewController {
         view.addSubview(excludeTextField)
         view.addSubview(searchButton)
         view.addSubview(saveSearchButton)
-        view.addSubview(backButton)
-
+        
         // Layout constraints
         setupConstraints()
         
-        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        searchButton.addTarget(self, action: #selector(navigateToSearchResultViewController), for: .touchUpInside)
+        orButton.addTarget(self, action: #selector(updateOr), for: .touchUpInside)
+        andButton.addTarget(self, action: #selector(updateAnd), for: .touchUpInside)
     }
     
-    @objc private func backButtonTapped() {
-        dismiss(animated: true, completion: nil)
+    //Update the user's choice to or
+    @objc private func updateOr() {
+        onlyInclude = true;
+        orButton.backgroundColor = UIColor.gray
+        andButton.backgroundColor = UIColor.white
+    }
+    
+    //Update the user's choice to and
+    @objc private func updateAnd() {
+        onlyInclude = false;
+        orButton.backgroundColor = UIColor.white
+        andButton.backgroundColor = UIColor.gray
+    }
+    
+    //Change the view to the results of the recipe search
+    @objc private func navigateToSearchResultViewController() {
+        // Create SearchResultViewController instance
+        let searchResultViewController = SearchResultViewController()
+        
+        //Checking if the or button or and button is clicked
+        if onlyInclude
+        {
+            //Checking to see if the include text box is empty and alerting if it is
+            if includeTextField.text == nil || includeTextField.text == ""
+            {
+                let alert = UIAlertController(title: "Problem", message: "Empty Search Value", preferredStyle: UIAlertController.Style.alert)
+                alert.addAction(UIAlertAction(title: "Ok", style: UIAlertAction.Style.default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
+            }
+            else
+            {
+                searchResultViewController.des = includeTextField.text!
+                navigationController?.pushViewController(searchResultViewController, animated: true)
+            }
+        }
+        else
+        {
+            //Checking to see if the include and exclude text box is empty and alerting if it is
+            if includeTextField.text == nil || includeTextField.text == "" || excludeTextField.text == nil || excludeTextField.text == ""
+            {
+                let alert = UIAlertController(title: "Problem", message: "Empty Search Value", preferredStyle: UIAlertController.Style.alert)
+                alert.addAction(UIAlertAction(title: "Ok", style: UIAlertAction.Style.default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
+            }
+            else
+            {
+                searchResultViewController.des = includeTextField.text!
+                navigationController?.pushViewController(searchResultViewController, animated: true)
+            }
+        }
     }
 
     private func setupConstraints() {
@@ -169,11 +213,10 @@ class SearchViewController: UIViewController {
             saveSearchButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             saveSearchButton.widthAnchor.constraint(equalToConstant: 140),
             saveSearchButton.heightAnchor.constraint(equalToConstant: 40),
-            backButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            backButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            backButton.widthAnchor.constraint(equalToConstant: 100),
-            backButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
 }
 
+#Preview {
+    SearchViewController()
+}
