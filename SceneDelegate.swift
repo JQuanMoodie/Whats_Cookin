@@ -9,8 +9,6 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-    var logoutTimer: Timer?
-    let logoutTimeInterval: TimeInterval = 300 // 5 minutes
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
@@ -29,10 +27,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func setRootViewController() {
         let isLoggedIn = UserDefaults.standard.string(forKey: "username") != nil
         let rootViewController: UIViewController
-        if isLoggedIn {
+        if (isLoggedIn) {
             let homeViewController = HomeViewController()
             rootViewController = UINavigationController(rootViewController: homeViewController)
-            startLogoutTimer()
         } else {
             let loginViewController = LoginViewController()
             loginViewController.delegate = self
@@ -42,27 +39,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         self.window?.makeKeyAndVisible()
     }
 
-    func startLogoutTimer() {
-        logoutTimer?.invalidate()
-        logoutTimer = Timer.scheduledTimer(timeInterval: logoutTimeInterval, target: self, selector: #selector(logoutUser), userInfo: nil, repeats: false)
-    }
-
-    @objc func logoutUser() {
-        UserDefaults.standard.removeObject(forKey: "username")
-        let loginViewController = LoginViewController()
-        loginViewController.delegate = self
-        self.window?.rootViewController = loginViewController
-        self.window?.makeKeyAndVisible()
-    }
-
     func sceneDidEnterBackground(_ scene: UIScene) {
-        logoutTimer?.invalidate()
+        // Handle any tasks needed when the app enters the background.
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
-        if UserDefaults.standard.string(forKey: "username") != nil {
-            startLogoutTimer()
-        }
+        // Handle any tasks needed when the app becomes active.
     }
 }
 
@@ -77,7 +59,7 @@ extension SceneDelegate: LoginViewControllerDelegate {
             window.rootViewController = navigationController
             window.makeKeyAndVisible()
         }
-        startLogoutTimer()
     }
 }
+
 

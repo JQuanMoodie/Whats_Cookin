@@ -8,20 +8,20 @@
 import UIKit
 
 class SearchResultViewController: UIViewController {
-        
+
     // View of the table representing the results of the search
     var tableView = UITableView()
-    
-    //String representing the user's search
-    var des:String?
-    
-    //An instance of the recipe API
+
+    // String representing the user's search
+    var des: String?
+
+    // An instance of the recipe API
     private let recipeService = RecipeService()
-    
-    //An array of the results of the search
-    var recipes : [Recipee] = []
-    
-    //Creating the page title
+
+    // An array of the results of the search
+    var recipes: [Recipee] = []
+
+    // Creating the page title
     private let includeLabel: UILabel = {
         let label = UILabel()
         label.text = "Search Results"
@@ -29,14 +29,13 @@ class SearchResultViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
+
     private func setUpConstraints() {
         NSLayoutConstraint.activate([
-            
-            //Title Constraints
+            // Title Constraints
             includeLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40),
             includeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
+
             // Table Constraints
             tableView.topAnchor.constraint(equalTo: includeLabel.bottomAnchor, constant: 20),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
@@ -45,24 +44,24 @@ class SearchResultViewController: UIViewController {
             tableView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        //Grab Search Results
-        if des != nil{
-            fetchRecipesFromAPI(Description: des!)
+
+        // Grab Search Results
+        if let query = des {
+            fetchRecipesFromAPI(query: query)
         }
-        
-        //Set Up Page Elements
+
+        // Set Up Page Elements
         view.backgroundColor = UIColor(red: 0.5, green: 0.7, blue: 0.9, alpha: 1.0)
         view.addSubview(includeLabel)
         configureTableView()
-        
-        //Layout constraints
+
+        // Layout constraints
         setUpConstraints()
     }
-    
+
     // Aligns the table with the rest of the elements
     func configureTableView() {
         view.addSubview(tableView)
@@ -73,18 +72,21 @@ class SearchResultViewController: UIViewController {
         tableView.register(RecipeCell.self, forCellReuseIdentifier: "RecipeCell")
         tableView.showsVerticalScrollIndicator = false
     }
-    
+
     func setTableViewDelegate() {
         tableView.delegate = self
         tableView.dataSource = self
     }
-    
-    //implementing API from RecipeAPIService.swift
-    func fetchRecipesFromAPI(Description: String) {
-        recipeService.fetchRecipes(query: des) { [weak self] result in
+
+    // Implementing API from RecipeAPIService.swift
+    func fetchRecipesFromAPI(query: String) {
+        recipeService.fetchRecipes(query: query) { [weak self] result in
             switch result {
             case .success(let recipes):
                 self?.recipes = recipes
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                }
                 print("Fetched recipes: \(recipes)")
             case .failure(let error):
                 print("Error fetching recipes: \(error)")
@@ -104,10 +106,8 @@ extension SearchResultViewController: UITableViewDelegate, UITableViewDataSource
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "RecipeCell", for: indexPath) as! RecipeCell
         let recipe = recipes[indexPath.row]
-
+        cell.set(recipee: recipe)
         cell.backgroundColor = UIColor(red: 0.5, green: 0.7, blue: 0.9, alpha: 1.0)
-        cell.set(recipe: recipe)
-    
         return cell
     }
 
@@ -115,9 +115,5 @@ extension SearchResultViewController: UITableViewDelegate, UITableViewDataSource
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // Handle table cell selection
     }
-}
-
-#Preview {
-    SearchResultViewController()
 }
 
