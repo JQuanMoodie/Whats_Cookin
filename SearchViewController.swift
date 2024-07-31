@@ -8,10 +8,7 @@
 import UIKit
 
 class SearchViewController: UIViewController {
-
     private let recipeService = RecipeService()
-    var ingredients = [String]()
-    var recipes = [Recipee]()
     var onlyInclude = true
 
     private let includeLabel: UILabel = {
@@ -81,16 +78,18 @@ class SearchViewController: UIViewController {
     private let searchButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Search", for: .normal)
-        button.backgroundColor = UIColor(white: 1, alpha: 0.5)
+        button.backgroundColor = .systemBlue
         button.layer.cornerRadius = 10
+        button.setTitleColor(.white, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(didTapSearchButton), for: .touchUpInside)
         return button
     }()
 
     private let saveSearchButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Save Search", for: .normal)
-        button.backgroundColor = UIColor.blue
+        button.backgroundColor = .systemGreen
         button.layer.cornerRadius = 10
         button.setTitleColor(.white, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -99,10 +98,8 @@ class SearchViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .white
         
-        view.backgroundColor = UIColor(red: 0.5, green: 0.7, blue: 0.9, alpha: 1.0)
-        
-        // Add subviews
         view.addSubview(includeLabel)
         view.addSubview(includeTextField)
         view.addSubview(selectOneLabel)
@@ -113,110 +110,66 @@ class SearchViewController: UIViewController {
         view.addSubview(searchButton)
         view.addSubview(saveSearchButton)
         
-        // Layout constraints
         setupConstraints()
         
-        searchButton.addTarget(self, action: #selector(navigateToSearchResultViewController), for: .touchUpInside)
-        orButton.addTarget(self, action: #selector(updateOr), for: .touchUpInside)
-        andButton.addTarget(self, action: #selector(updateAnd), for: .touchUpInside)
+        orButton.addTarget(self, action: #selector(handleButtonClick), for: .touchUpInside)
+        andButton.addTarget(self, action: #selector(handleButtonClick), for: .touchUpInside)
     }
-    
-    //Update the user's choice to or
-    @objc private func updateOr() {
-        onlyInclude = true;
-        orButton.backgroundColor = UIColor.gray
-        andButton.backgroundColor = UIColor.white
-    }
-    
-    //Update the user's choice to and
-    @objc private func updateAnd() {
-        onlyInclude = false;
-        orButton.backgroundColor = UIColor.white
-        andButton.backgroundColor = UIColor.gray
-    }
-    
-    //Change the view to the results of the recipe search
-    @objc private func navigateToSearchResultViewController() {
-        // Create SearchResultViewController instance
-        let searchResultViewController = SearchResultViewController()
-        
-        //Checking if the or button or and button is clicked
-        if onlyInclude
-        {
-            //Checking to see if the include text box is empty and alerting if it is
-            if includeTextField.text == nil || includeTextField.text == ""
-            {
-                let alert = UIAlertController(title: "Problem", message: "Empty Search Value", preferredStyle: UIAlertController.Style.alert)
-                alert.addAction(UIAlertAction(title: "Ok", style: UIAlertAction.Style.default, handler: nil))
-                self.present(alert, animated: true, completion: nil)
-            }
-            else
-            {
-                searchResultViewController.des = includeTextField.text!
-                navigationController?.pushViewController(searchResultViewController, animated: true)
-            }
+
+    @objc private func handleButtonClick(_ sender: UIButton) {
+        if sender == orButton {
+            onlyInclude = true
+            orButton.backgroundColor = .gray
+            andButton.backgroundColor = .white
+        } else {
+            onlyInclude = false
+            orButton.backgroundColor = .white
+            andButton.backgroundColor = .gray
         }
-        else
-        {
-            //Checking to see if the include and exclude text box is empty and alerting if it is
-            if includeTextField.text == nil || includeTextField.text == "" || excludeTextField.text == nil || excludeTextField.text == ""
-            {
-                let alert = UIAlertController(title: "Problem", message: "Empty Search Value", preferredStyle: UIAlertController.Style.alert)
-                alert.addAction(UIAlertAction(title: "Ok", style: UIAlertAction.Style.default, handler: nil))
-                self.present(alert, animated: true, completion: nil)
-            }
-            else
-            {
-                searchResultViewController.des = includeTextField.text!
-                navigationController?.pushViewController(searchResultViewController, animated: true)
-            }
-        }
+    }
+
+    @objc private func didTapSearchButton() {
+        let searchResultVC = SearchResultViewController()
+        searchResultVC.query = includeTextField.text
+        searchResultVC.exclude = excludeTextField.text
+        searchResultVC.onlyInclude = onlyInclude
+        navigationController?.pushViewController(searchResultVC, animated: true)
     }
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            includeLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40),
-            includeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-
-            includeTextField.topAnchor.constraint(equalTo: includeLabel.bottomAnchor, constant: 20),
+            includeLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            includeLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            includeTextField.topAnchor.constraint(equalTo: includeLabel.bottomAnchor, constant: 10),
             includeTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             includeTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            includeTextField.heightAnchor.constraint(equalToConstant: 40),
-
+            
             selectOneLabel.topAnchor.constraint(equalTo: includeTextField.bottomAnchor, constant: 20),
-            selectOneLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-
+            selectOneLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            
             orButton.topAnchor.constraint(equalTo: selectOneLabel.bottomAnchor, constant: 10),
-            orButton.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -10),
-            orButton.widthAnchor.constraint(equalToConstant: 60),
-            orButton.heightAnchor.constraint(equalToConstant: 40),
-
+            orButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            orButton.widthAnchor.constraint(equalToConstant: 100),
+            
             andButton.topAnchor.constraint(equalTo: selectOneLabel.bottomAnchor, constant: 10),
-            andButton.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 10),
-            andButton.widthAnchor.constraint(equalToConstant: 60),
-            andButton.heightAnchor.constraint(equalToConstant: 40),
-
-            excludeLabel.topAnchor.constraint(equalTo: orButton.bottomAnchor, constant: 20),
-            excludeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-
-            excludeTextField.topAnchor.constraint(equalTo: excludeLabel.bottomAnchor, constant: 20),
+            andButton.leadingAnchor.constraint(equalTo: orButton.trailingAnchor, constant: 10),
+            andButton.widthAnchor.constraint(equalToConstant: 100),
+            
+            excludeLabel.topAnchor.constraint(equalTo: andButton.bottomAnchor, constant: 20),
+            excludeLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            
+            excludeTextField.topAnchor.constraint(equalTo: excludeLabel.bottomAnchor, constant: 10),
             excludeTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             excludeTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            excludeTextField.heightAnchor.constraint(equalToConstant: 40),
-
+            
             searchButton.topAnchor.constraint(equalTo: excludeTextField.bottomAnchor, constant: 20),
-            searchButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            searchButton.widthAnchor.constraint(equalToConstant: 100),
-            searchButton.heightAnchor.constraint(equalToConstant: 40),
-
-            saveSearchButton.topAnchor.constraint(equalTo: searchButton.bottomAnchor, constant: 10),
-            saveSearchButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            saveSearchButton.widthAnchor.constraint(equalToConstant: 140),
-            saveSearchButton.heightAnchor.constraint(equalToConstant: 40),
+            searchButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            searchButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            saveSearchButton.topAnchor.constraint(equalTo: searchButton.bottomAnchor, constant: 20),
+            saveSearchButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            saveSearchButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
     }
 }
 
-#Preview {
-    SearchViewController()
-}

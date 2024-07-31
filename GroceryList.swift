@@ -85,26 +85,25 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     @objc func saveItem(name: String) {
-    guard let userId = Auth.auth().currentUser?.uid else { 
-        print("User not authenticated.")
-        return 
-    }
-    let newItem: [String: Any] = ["name": name]
-    db.collection("users").document(userId).collection("groceryItems").addDocument(data: newItem) { [weak self] error in
-        if let error = error {
-            print("Error adding document: \(error.localizedDescription)")
-            let alert = UIAlertController(title: "Error", message: "Failed to add item. Please try again.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            self?.present(alert, animated: true)
-        } else {
-            self?.fetchItems()
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("User not authenticated.")
+            return
+        }
+        let newItem: [String: Any] = ["name": name]
+        db.collection("users").document(userId).collection("groceryItems").addDocument(data: newItem) { [weak self] error in
+            if let error = error {
+                print("Error adding document: \(error.localizedDescription)")
+                let alert = UIAlertController(title: "Error", message: "Failed to add item. Please try again.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self?.present(alert, animated: true)
+            } else {
+                self?.fetchItems()
+            }
         }
     }
-}
-
     
     @objc func importMissingIngredients() {
-        let recipeIngredients = recipes.flatMap { $0.ingredients }
+        let recipeIngredients = recipes.compactMap { $0.ingredients }.flatMap { $0 }
         let missingIngredients = determineMissingIngredients(from: recipeIngredients)
         importIngredients(ingredients: missingIngredients)
     }
@@ -181,7 +180,11 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     func fetchRecipesFromAPI() {
-        recipeService.fetchRecipes(query: "pasta") { [weak self] result in
+        let query = "pasta" // Example query
+        let includeIngredients: String? = nil // Adjust based on your use case
+        let excludeIngredients: String? = nil // Adjust based on your use case
+        
+        recipeService.fetchRecipes(query: query, includeIngredients: includeIngredients, excludeIngredients: excludeIngredients) { [weak self] result in
             switch result {
             case .success(let recipes):
                 self?.recipes = recipes
@@ -198,7 +201,7 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     func shopForIngredient(ingredient: String) {
-        let apiKey = "4797a64albcc4191b17e6da86f903914"
+        let apiKey = "YOUR-API-KEY" // Replace with your actual API key
         let query = ingredient.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let urlString = "https://api.spoonacular.com/food/products/search?query=\(query)&apiKey=\(apiKey)"
         guard let url = URL(string: urlString) else { return }

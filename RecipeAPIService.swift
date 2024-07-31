@@ -10,17 +10,32 @@ struct Recipee: Identifiable, Decodable {
     let id: Int
     let title: String
     let image: String
-    let servings: Int
-    let readyInMinutes: Int
-    let ingredients: [Ingredient]
-    let instructions: String
+    let servings: Int?
+    let readyInMinutes: Int?
+    let ingredients: [Ingredient]?
+    let instructions: String?
 }
 
 struct Ingredient: Codable, Identifiable {
-    let id: UUID // or use a different unique identifier if available in your API
+    let id: UUID
     let name: String
     let amount: Double
     let unit: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, amount, unit
+    }
+    
+    init(id: UUID = UUID(), name: String, amount: Double, unit: String) {
+        self.id = id
+        self.name = name
+        self.amount = amount
+        self.unit = unit
+    }
+}
+
+struct RecipeResponse: Decodable {
+    let results: [Recipee]
 }
 
 enum APIError: Error {
@@ -30,9 +45,7 @@ enum APIError: Error {
     case decodingError(Error)
 }
 
-struct RecipeSearchResponse: Decodable {
-    let results: [Recipee]
-}
+
 
 class RecipeService {
     func fetchRecipes(query: String?, includeIngredients: String?, excludeIngredients: String?, completion: @escaping (Result<[Recipee], APIError>) -> Void) {
@@ -73,7 +86,7 @@ class RecipeService {
             }
             
             do {
-                let response = try JSONDecoder().decode(RecipeSearchResponse.self, from: data)
+                let response = try JSONDecoder().decode(RecipeResponse.self, from: data)
                 let recipes = response.results
                 completion(.success(recipes))
             } catch {
