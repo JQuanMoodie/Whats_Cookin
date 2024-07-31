@@ -217,11 +217,12 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         let button = UIButton()
         button.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(menuButtonTapped), for: .touchUpInside)
         return button
     }()
 
     private let profileButton: UIButton = {
-        let button = UIButton(type: .system) // Added type for system button style
+        let button = UIButton(type: .system)
         button.setTitle("Profile", for: .normal)
         button.setTitleColor(.black, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -277,10 +278,14 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         return tabBar
     }()
+    
+    private var sideMenuViewController: SidebarViewController!
+    private var isSideMenuVisible = false
 
     // MARK: - Properties
 
-    private var randomRecipes: [Recipe] = []
+    private var randomRecipes: [Recipee] = []
+    private let recipeService = RecipeService() // Create instance of RecipeService
 
     // MARK: - Lifecycle
 
@@ -298,9 +303,18 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         view.addSubview(popularRecipesView)
         view.addSubview(recommendationsView)
         view.addSubview(tabBar)
+        
+         // Setup side menu
+        setupSideMenu()
 
         // Layout constraints
         setupConstraints()
+
+        // Add swipe gesture recognizer
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeLeft(_:)))
+        swipeLeft.direction = .left
+        sideMenuViewController.view.addGestureRecognizer(swipeLeft)
+
 
         // Add targets
         profileButton.addTarget(self, action: #selector(navigateToProfileView), for: .touchUpInside)
@@ -321,6 +335,36 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         // Fetch random recipes
         fetchRandomRecipes()
     }
+    
+     private func setupSideMenu() {
+        sideMenuViewController = SidebarViewController()
+        addChild(sideMenuViewController)
+        view.addSubview(sideMenuViewController.view)
+        sideMenuViewController.didMove(toParent: self)
+
+        // Set the initial frame for the side menu off-screen
+        sideMenuViewController.view.frame = CGRect(x: -view.frame.width * 1, y: 0, width: view.frame.width * 1, height: view.frame.height)
+        sideMenuViewController.view.autoresizingMask = [.flexibleHeight, .flexibleRightMargin]
+    }
+
+    @objc private func menuButtonTapped() {
+        toggleSideMenu()
+    }
+
+    private func toggleSideMenu() {
+        let targetPosition: CGFloat = isSideMenuVisible ? -view.frame.width * 1 : 0
+        UIView.animate(withDuration: 0.3, animations: {
+            self.sideMenuViewController.view.frame.origin.x = targetPosition
+        }) { _ in
+            self.isSideMenuVisible.toggle()
+        }
+    }
+
+    @objc private func handleSwipeLeft(_ gesture: UISwipeGestureRecognizer) {
+        if isSideMenuVisible {
+            toggleSideMenu()
+        }
+    }
 
     // MARK: - Navigation
 
@@ -330,8 +374,20 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
     }
 
     @objc private func navigateToSearchViewController() {
-        let searchViewController = SearchViewController() // Create SearchViewController instance
+        let searchViewController = SearchViewController()
         navigationController?.pushViewController(searchViewController, animated: true)
+    }
+    @objc private func navigateToFavoriteViewController() {
+        let favViewController = FavoritesViewController()
+        navigationController?.pushViewController(favViewController, animated: true)
+    }
+    @objc private func navigateToHistoryViewController() {
+        let hisViewController = HistoryViewController()
+        navigationController?.pushViewController(hisViewController, animated: true)
+    }
+    @objc private func navigateToSettingsViewController() {
+        let settingsViewController = SettingsViewController()
+        navigationController?.pushViewController(settingsViewController, animated: true)
     }
 
     @objc private func didTapPopularRecipe() {
@@ -352,7 +408,7 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
     // MARK: - API Fetching
 
     private func fetchRandomRecipes() {
-        NetworkManager.shared.fetchRandomRecipes { result in
+        recipeService.fetchRandomRecipes { result in
             switch result {
             case .success(let recipes):
                 DispatchQueue.main.async {
@@ -370,7 +426,7 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         
         if let firstRecipe = randomRecipes.first {
             let imageView = UIImageView()
-            if let url = firstRecipe.imageURL {
+            if let url = URL(string: firstRecipe.image) { // Ensure URL is valid
                 imageView.load(url: url)
             }
             imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -386,7 +442,7 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         if randomRecipes.count > 1 {
             let secondRecipe = randomRecipes[1]
             let imageView = UIImageView()
-            if let url = secondRecipe.imageURL {
+            if let url = URL(string: secondRecipe.image) { // Ensure URL is valid
                 imageView.load(url: url)
             }
             imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -397,6 +453,25 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
                 imageView.trailingAnchor.constraint(equalTo: recommendationsView.trailingAnchor),
                 imageView.bottomAnchor.constraint(equalTo: recommendationsView.bottomAnchor)
             ])
+        }
+    }
+    
+    // MARK: - Tab Bar Delegate Method
+
+    func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        switch item.tag {
+        case 0:
+            0
+        case 1:
+           navigateToFavoriteViewController()
+        case 2:
+            navigateToHistoryViewController()
+        case 3:
+            navigateToSearchViewController()
+        case 4:
+            navigateToSettingsViewController()
+        default:
+            break
         }
     }
 
@@ -436,3 +511,6 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         ])
     }
 }
+
+
+
