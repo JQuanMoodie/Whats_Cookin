@@ -254,9 +254,3 @@ func removeRecipe(recipeId: Int, userId: String, completion: @escaping (Result<V
         return Recipee(id: id, title: title, image: image, servings: servings, readyInMinutes: readyInMinutes, ingredients: ingredients, instructions: instructions)
     }
 }
-    
-
-
-
-
-
