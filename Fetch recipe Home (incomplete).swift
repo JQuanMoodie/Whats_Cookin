@@ -3,7 +3,7 @@
 //  what'sCookin
 //
 //  Created by Raisa Methila on 7/12/24.
-//
+//  Edited : Jevon Williams
 //
 //import UIKit
 //
@@ -304,7 +304,7 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         view.addSubview(recommendationsView)
         view.addSubview(tabBar)
         
-         // Setup side menu
+        // Setup side menu
         setupSideMenu()
 
         // Layout constraints
@@ -314,7 +314,6 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeLeft(_:)))
         swipeLeft.direction = .left
         sideMenuViewController.view.addGestureRecognizer(swipeLeft)
-
 
         // Add targets
         profileButton.addTarget(self, action: #selector(navigateToProfileView), for: .touchUpInside)
@@ -336,7 +335,7 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         fetchRandomRecipes()
     }
     
-     private func setupSideMenu() {
+    private func setupSideMenu() {
         sideMenuViewController = SidebarViewController()
         addChild(sideMenuViewController)
         view.addSubview(sideMenuViewController.view)
@@ -377,14 +376,17 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
         let searchViewController = SearchViewController()
         navigationController?.pushViewController(searchViewController, animated: true)
     }
+
     @objc private func navigateToFavoriteViewController() {
         let favViewController = FavoritesViewController()
         navigationController?.pushViewController(favViewController, animated: true)
     }
+
     @objc private func navigateToHistoryViewController() {
         let hisViewController = HistoryViewController()
         navigationController?.pushViewController(hisViewController, animated: true)
     }
+
     @objc private func navigateToSettingsViewController() {
         let settingsViewController = SettingsViewController()
         navigationController?.pushViewController(settingsViewController, animated: true)
@@ -422,14 +424,13 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
     }
 
     private func updateUIWithRandomRecipes() {
-        guard !randomRecipes.isEmpty else { return }
+        // Clear previous subviews
+        popularRecipesView.subviews.forEach { $0.removeFromSuperview() }
+        recommendationsView.subviews.forEach { $0.removeFromSuperview() }
         
+        // Populate popularRecipesView
         if let firstRecipe = randomRecipes.first {
-            let imageView = UIImageView()
-            if let url = URL(string: firstRecipe.image) { // Ensure URL is valid
-                imageView.load(url: url)
-            }
-            imageView.translatesAutoresizingMaskIntoConstraints = false
+            let imageView = createRecipeImageView(for: firstRecipe)
             popularRecipesView.addSubview(imageView)
             NSLayoutConstraint.activate([
                 imageView.topAnchor.constraint(equalTo: popularRecipesView.topAnchor),
@@ -439,13 +440,10 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
             ])
         }
 
+        // Populate recommendationsView
         if randomRecipes.count > 1 {
             let secondRecipe = randomRecipes[1]
-            let imageView = UIImageView()
-            if let url = URL(string: secondRecipe.image) { // Ensure URL is valid
-                imageView.load(url: url)
-            }
-            imageView.translatesAutoresizingMaskIntoConstraints = false
+            let imageView = createRecipeImageView(for: secondRecipe)
             recommendationsView.addSubview(imageView)
             NSLayoutConstraint.activate([
                 imageView.topAnchor.constraint(equalTo: recommendationsView.topAnchor),
@@ -455,15 +453,25 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
             ])
         }
     }
-    
+
+    private func createRecipeImageView(for recipe: Recipee) -> UIImageView {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        if let url = URL(string: recipe.image) {
+            imageView.load(url: url)
+        }
+        return imageView
+    }
+
     // MARK: - Tab Bar Delegate Method
 
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
         switch item.tag {
         case 0:
-            0
+            // Already on Home
+            break
         case 1:
-           navigateToFavoriteViewController()
+            navigateToFavoriteViewController()
         case 2:
             navigateToHistoryViewController()
         case 3:
@@ -509,6 +517,19 @@ class HomeViewController: UIViewController, UITabBarDelegate, UITabBarController
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
+    }
+}
+
+// UIImageView extension to load images from URL
+extension UIImageView {
+    func load(url: URL) {
+        DispatchQueue.global().async {
+            if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self.image = image
+                }
+            }
+        }
     }
 }
 

@@ -4,65 +4,49 @@
 //
 //  Created by J’Quan Moodie on 7/14/24.
 //  Edited by: Raisa Methila
-
+// Edited by: Jevon Williams
 import UIKit
 
-struct Recipe{
-    var name: String
-    var ingredients: [String] = []
-    var favorited: Bool = false
-}
-
 class RecipeCell: UITableViewCell {
-    
-    // Recipe Title
-    var recipeTitleLabel = UILabel()
-    // Button for favoriting/unfavoriting
-    let button = UIButton()
-    
-    // Organizes how the table cell looks
+    let titleLabel = UILabel()
+    let recipeImageView = UIImageView()
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        addSubview(recipeTitleLabel)
-        contentView.addSubview(button)
-        
-        button.setImage(UIImage(systemName: "star"), for: .normal)
-        button.isUserInteractionEnabled = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            button.centerYAnchor.constraint(equalTo: centerYAnchor)
-        ])
-        
-        configureTitleLabel()
-        setTitleLabelConstraints()
+        setupUI()
     }
-    
-    // Grabs the name of the recipe to display in the table
-    func set(recipe: Recipe) {
-        recipeTitleLabel.text = recipe.name
-    }
-    
-    // Grabs the title of the Recipee to display in the table
-    func set(recipee: Recipee) {
-        recipeTitleLabel.text = recipee.title
-    }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // Sets up how the name of the recipe will look
-    func configureTitleLabel() {
-        recipeTitleLabel.numberOfLines = 0
-        recipeTitleLabel.adjustsFontSizeToFitWidth = true
+    private func setupUI() {
+        // Add subviews and set up constraints
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(recipeImageView)
+        
+        // Set up constraints for titleLabel and recipeImageView
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        recipeImageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            recipeImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            recipeImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            recipeImageView.widthAnchor.constraint(equalToConstant: 100),
+            recipeImageView.heightAnchor.constraint(equalToConstant: 100),
+            
+            titleLabel.leadingAnchor.constraint(equalTo: recipeImageView.trailingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+        ])
     }
-    
-    // Aligns the name of the recipe in the table cell
-    func setTitleLabelConstraints() {
-        recipeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        recipeTitleLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        recipeTitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 30).isActive = true
-        recipeTitleLabel.heightAnchor.constraint(equalToConstant: 80).isActive = true
-        recipeTitleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -5).isActive = true
+
+    func set(recipee: Recipee, isFavorited: Bool) {
+        titleLabel.text = recipee.title
+        if let imageUrl = URL(string: recipee.image) {
+            recipeImageView.load(url: imageUrl)
+        }
+        // No button to set title for
     }
 }
+
