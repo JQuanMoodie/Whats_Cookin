@@ -4,10 +4,10 @@
 //
 //  Created by J’Quan Moodie on 7/13/24.
 //  Edited by Raisa Methila
-
-
+//  Edited by Jevon Williams
 
 import UIKit
+import FirebaseAuth
 
 protocol FavoritesViewControllerDelegate: AnyObject {
     func homeTabTapped()
@@ -15,28 +15,11 @@ protocol FavoritesViewControllerDelegate: AnyObject {
 
 class FavoritesViewController: UIViewController {
 
-    // Delegate to handle login success
     weak var delegate: FavoritesViewControllerDelegate?
-    
-    // View of the table representing the favorite recipes
+    private let recipeService = RecipeService()
     var tableView = UITableView()
-    
-    // Array of recipes in the favorite list
-    var favRecipes: [Recipe] = []
+    var favRecipes: [Recipee] = []
 
-    // Function to add recipes to the favorites list
-    public func addFavRecipe(recipe: Recipe) {
-        favRecipes.append(recipe)
-    }
-
-    // Function to remove a recipe from the favorites list
-    public func removeFavRecipe(recipe: Recipe) {
-        if let index = favRecipes.firstIndex(where: { $0.name == recipe.name }) {
-            favRecipes.remove(at: index)
-        }
-    }
-
-    // Creating Menu button
     private let menuButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
@@ -44,7 +27,6 @@ class FavoritesViewController: UIViewController {
         return button
     }()
 
-    // Creating the Search Text Box
     private let searchTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Search Through Your Favorite Recipes"
@@ -53,7 +35,6 @@ class FavoritesViewController: UIViewController {
         return textField
     }()
 
-    // Creating the Profile Button
     private let profileButton: UIButton = {
         let button = UIButton()
         button.setTitle("Profile", for: .normal)
@@ -62,7 +43,6 @@ class FavoritesViewController: UIViewController {
         return button
     }()
 
-    // Creating the app title
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "What's Cookin'"
@@ -71,144 +51,140 @@ class FavoritesViewController: UIViewController {
         return label
     }()
 
-    private func setupConstraints() {
-        NSLayoutConstraint.activate([
-            // Menu Button Constraints
-            menuButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            menuButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            
-            // Profile Button Constraints
-            profileButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            profileButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            
-            // Search TextField Constraints
-            searchTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            searchTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            searchTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-
-            // Title Label Constraints
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            
-            // Table Constraints
-            tableView.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: 20),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: searchTextField.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: searchTextField.trailingAnchor),
-            tableView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-        ])
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Grab Dummy Data For Testing
-        favRecipes = fetchData()
-
-        // Set Up the Page Elements
-        setUpPage()
-
-        // Layout Constraints
-        setupConstraints()
-
-        profileButton.addTarget(self, action: #selector(profileButtonTapped), for: .touchUpInside)
-    }
-
-    @objc private func profileButtonTapped() {
-        // Handle profile button tap, transition to profile screen
-    }
-
-    // Adds all page elements to the screen
-    private func setUpPage() {
         view.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
+        setupUI()
+        fetchFavoriteRecipes()
+    }
+
+    private func setupUI() {
         view.addSubview(menuButton)
         view.addSubview(searchTextField)
         view.addSubview(profileButton)
         view.addSubview(titleLabel)
         configureTableView()
+        setupConstraints()
+
+        profileButton.addTarget(self, action: #selector(profileButtonTapped), for: .touchUpInside)
     }
 
-    // Aligns the table with the rest of the elements
-    func configureTableView() {
-        view.addSubview(tableView)
-        setTableViewDelegate()
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            menuButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            menuButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+
+            profileButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            profileButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+
+            searchTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            searchTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            searchTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+
+            tableView.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: 20),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: searchTextField.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: searchTextField.trailingAnchor),
+        ])
+    }
+
+    private func configureTableView() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = 100
         tableView.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         tableView.register(RecipeCell.self, forCellReuseIdentifier: "RecipeCell")
         tableView.showsVerticalScrollIndicator = false
-    }
-
-    func setTableViewDelegate() {
         tableView.delegate = self
         tableView.dataSource = self
+        view.addSubview(tableView)
+    }
+
+    private func fetchFavoriteRecipes() {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("User is not authenticated")
+            return
+        }
+
+        recipeService.fetchFavoriteRecipes(userId: userId) { [weak self] result in
+            switch result {
+            case .success(let recipes):
+                DispatchQueue.main.async {
+                    self?.favRecipes = recipes
+                    self?.tableView.reloadData()
+                }
+            case .failure(let error):
+                print("Failed to fetch recipes: \(error)")
+            }
+        }
+    }
+
+    @objc private func profileButtonTapped() {
+        // Handle profile button tap, transition to profile screen
     }
 }
 
 extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
-
-    // Setting the number of rows for the table
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return favRecipes.count
     }
 
-    // Setting the data for each data cell
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "RecipeCell", for: indexPath) as! RecipeCell
         let recipe = favRecipes[indexPath.row]
 
         cell.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
-        cell.set(recipe: recipe)
+        cell.set(recipee: recipe, isFavorited: true)
 
         let action = UIAction { _ in
             self.removeFavRecipe(recipe: recipe)
-            tableView.reloadData()
         }
-        cell.button.addAction(action, for: .touchUpInside)
-
+        
         return cell
     }
 
-    // Setting the action for when the user clicks the table cell
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // Handle table cell selection
     }
 }
 
-// Dummy Data for Testing
 extension FavoritesViewController {
-    func fetchData() -> [Recipe] {
-        let recipe1 = Recipe(name: "Jamaican Oxtail with Rices and Peas")
-        let recipe2 = Recipe(name: "Chef Tini's Famous Baked Macaroni & Cheese")
-        let recipe3 = Recipe(name: "Southern Style Deep Fried Chicken")
-        let recipe4 = Recipe(name: "Cilantro White Rice")
-        let recipe5 = Recipe(name: "Nacho Chips with Spicy Guacamole")
-        let recipe6 = Recipe(name: "Carne Asada Tacos with Cheese")
-        let recipe7 = Recipe(name: "Chicago Style Deep Dish Pizza")
-        let recipe8 = Recipe(name: "Smashed Cheeseburger with Fries")
-        let recipe9 = Recipe(name: "Fettuccine Alfredo with Grilled Chicken")
-        let recipe10 = Recipe(name: "New York Style Cheesecake")
-
-        addFavRecipe(recipe: recipe1)
-        addFavRecipe(recipe: recipe2)
-        addFavRecipe(recipe: recipe3)
-        addFavRecipe(recipe: recipe4)
-        addFavRecipe(recipe: recipe5)
-        addFavRecipe(recipe: recipe6)
-        addFavRecipe(recipe: recipe7)
-        addFavRecipe(recipe: recipe8)
-        addFavRecipe(recipe: recipe9)
-        addFavRecipe(recipe: recipe10)
-        removeFavRecipe(recipe: recipe3)
-        removeFavRecipe(recipe: recipe7)
-        removeFavRecipe(recipe: recipe10)
-
-        return favRecipes
+    func addFavRecipe(recipe: Recipee) {
+        favRecipes.append(recipe)
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("User is not authenticated")
+            return
+        }
+        recipeService.saveRecipeToFavorites(recipe: recipe, userId: userId) { result in
+            switch result {
+            case .success:
+                print("Recipe added to favorites successfully.")
+            case .failure(let error):
+                print("Failed to add recipe to favorites: \(error)")
+            }
+        }
     }
 
-    private func homeTabTapped() {
-        delegate?.homeTabTapped()
+    func removeFavRecipe(recipe: Recipee) {
+        if let index = favRecipes.firstIndex(where: { $0.id == recipe.id }) {
+            favRecipes.remove(at: index)
+            guard let userId = Auth.auth().currentUser?.uid else {
+                print("User is not authenticated")
+                return
+            }
+            recipeService.removeRecipe(recipeId: recipe.id, userId: userId) { result in
+                switch result {
+                case .success:
+                    print("Recipe removed successfully.")
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                    }
+                case .failure(let error):
+                    print("Error removing recipe: \(error)")
+                }
+            }
+        }
     }
 }
-
-
