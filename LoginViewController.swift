@@ -18,7 +18,7 @@ class LoginViewController: UIViewController {
 
     private let usernameTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Username"
+        textField.placeholder = "Email"
         textField.borderStyle = .roundedRect
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
@@ -83,14 +83,13 @@ class LoginViewController: UIViewController {
     }
 
     @objc private func loginButtonTapped() {
-        guard let username = usernameTextField.text, !username.isEmpty,
+        guard let email = usernameTextField.text, !email.isEmpty,
               let password = passwordTextField.text, !password.isEmpty else {
-            showAlert(message: "Please enter both username and password.")
+            showAlert(message: "Please enter both email and password.")
             return
         }
 
-        // Handle login logic here
-        Auth.auth().signIn(withEmail: username, password: password) { [weak self] authResult, error in
+        Auth.auth().signIn(withEmail: email, password: password) { [weak self] authResult, error in
             guard let self = self else { return }
 
             if let error = error {
@@ -135,6 +134,16 @@ class LoginViewController: UIViewController {
     }
 
     private func handleLoginSuccess(username: String) {
+        // Inform the delegate about the successful login
         delegate?.didLoginSuccessfully(username: username)
+        
+        // Navigate to the main view controller
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first {
+            let mainViewController = HomeViewController() // Replace with your main view controller
+            mainViewController.modalPresentationStyle = .fullScreen
+            window.rootViewController = mainViewController
+            window.makeKeyAndVisible()
+        }
     }
 }
