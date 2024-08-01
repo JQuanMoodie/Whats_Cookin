@@ -1,4 +1,3 @@
-//
 //  HomeViewController.swift
 //  what'sCookin
 //
@@ -532,6 +531,3 @@ extension UIImageView {
         }
     }
 }
-
-
-
