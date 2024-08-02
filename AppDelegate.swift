@@ -3,7 +3,7 @@
 //  What's Cookin'
 //
 //  Created by Jevon Williams on 7/16/24.
-//modified by Jose Vasquez for notifcations 8/2/24
+//modified by Jose Vasquez for notifcations 7/16/24
 //
 
 import UIKit
