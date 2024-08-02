@@ -9,6 +9,7 @@
 \
 service cloud.firestore \{\
   match /databases/\{database\}/documents \{\
+    \
     // Rules for the users collection\
     match /users/\{userId\} \{\
       // Allow read access if the user is authenticated\
@@ -17,15 +18,19 @@ service cloud.firestore \{\
       // Allow write access if the user is authenticated and the user ID matches the authenticated user's ID\
       allow write: if request.auth != null && request.auth.uid == userId;\
 \
+      // Rules for the groceryItems subcollection\
+      match /groceryItems/\{itemId\} \{\
+        // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
+        allow read, write: if request.auth != null && request.auth.uid == userId;\
+      \}\
+\
       // Rules for the following subcollection\
       match /following/\{followingId\} \{\
-        // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
         allow read, write: if request.auth != null && request.auth.uid == userId;\
       \}\
 \
       // Rules for the followers subcollection\
       match /followers/\{followerId\} \{\
-        // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
         allow read, write: if request.auth != null && request.auth.uid == userId;\
       \}\
 \
@@ -33,7 +38,6 @@ service cloud.firestore \{\
       match /posts/\{postId\} \{\
         // Allow read access if the user is authenticated\
         allow read: if request.auth != null;\
-        \
         // Allow write access if the user is authenticated and the user ID matches the authenticated user's ID\
         allow write: if request.auth != null && request.auth.uid == userId;\
       \}\
@@ -43,7 +47,38 @@ service cloud.firestore \{\
         // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
         allow read, write: if request.auth != null && request.auth.uid == userId;\
       \}\
+\
+      // Rules for the savedRecipes subcollection\
+      match /savedRecipes/\{recipeId\} \{\
+        // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
+        allow read, write: if request.auth != null && request.auth.uid == userId;\
+      \}\
+\
+      // Rules for the favoriteRecipes subcollection\
+      match /favoriteRecipes/\{recipeId\} \{\
+        // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
+        allow read, write: if request.auth != null && request.auth.uid == userId;\
+      \}\
+    \}\
+\
+    // Rules for the recipes collection\
+    match /recipes/\{recipeId\} \{\
+      // Allow read access to all authenticated users\
+      allow read: if request.auth != null;\
+      \
+      // Allow write access only to admins\
+      allow write: if request.auth != null && request.auth.token.admin == true;\
+    \}\
+\
+    // Rules for the favoritedRecipes collection\
+    match /favoritedRecipes/\{recipeId\} \{\
+      // Allow read access to all authenticated users\
+      allow read: if request.auth != null;\
+\
+      // Allow write access if the user is authenticated and is adding/removing their favorite recipes\
+      allow write: if request.auth != null && request.auth.uid in resource.data.userIds;\
     \}\
   \}\
 \}\
+\
 }
