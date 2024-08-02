@@ -1,8 +1,9 @@
 //File for API integration
-//
-//Rachel Wu
-// Edited: Jevon Williams
-// Edited: Raisa Methila
+//  Authors:
+//  Raisa Methila
+//  Rachel Wu
+//  Jevon Williams
+
 
 import Foundation
 import FirebaseFirestore
