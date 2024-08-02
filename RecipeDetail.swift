@@ -1,13 +1,18 @@
 //
-//  RecipeDetail.swift
-//  What'sCookin
+//  RecipeDetailView.swift
+//  What's Cookin'
 //
-//  Created by Raisa Methila on 7/29/24.
+//  Created by Jevon Williams on 7/30/24.
 //
 
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
+
+extension NSNotification.Name {
+    static let recipeFavorited = NSNotification.Name("recipeFavorited")
+    static let recipeUnfavorited = NSNotification.Name("recipeUnfavorited")
+}
 
 class RecipeDetailViewController: UIViewController {
     var recipe: Recipee?
@@ -53,6 +58,13 @@ class RecipeDetailViewController: UIViewController {
         return button
     }()
     
+    private let postButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Post to Feed", for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     private let db = Firestore.firestore()
 
     override func viewDidLoad() {
@@ -65,11 +77,13 @@ class RecipeDetailViewController: UIViewController {
         view.addSubview(readyInMinutesLabel)
         view.addSubview(instructionsTextView)
         view.addSubview(favoriteButton)
+        view.addSubview(postButton)
         
         setupConstraints()
         setupData()
         
         favoriteButton.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
+        postButton.addTarget(self, action: #selector(postButtonTapped), for: .touchUpInside)
         updateFavoriteButtonTitle()
     }
 
@@ -151,6 +165,44 @@ class RecipeDetailViewController: UIViewController {
         }
     }
 
+    @objc private func postButtonTapped() {
+        guard let recipe = recipe else { return }
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            showAlert(message: "User not logged in.")
+            return
+        }
+
+        let newPostRef = db.collection("users").document(currentUserID).collection("posts").document()
+        let postData: [String: Any] = [
+            "title": recipe.title,
+            "image": recipe.image,
+            "servings": recipe.servings ?? 0,
+            "readyInMinutes": recipe.readyInMinutes ?? 0,
+            "instructions": recipe.instructions,
+            "timestamp": Timestamp(),
+            "likesCount": 0, // Initialize likesCount to 0
+            "likedUsers": [] // Initialize likedUsers as an empty array
+        ]
+
+        newPostRef.setData(postData) { [weak self] error in
+            if let error = error {
+                self?.showAlert(message: "Error posting: \(error.localizedDescription)")
+            } else {
+                self?.showAlert(message: "Recipe posted successfully.") { [weak self] in
+                    self?.dismiss(animated: true, completion: nil)
+                }
+            }
+        }
+    }
+
+    private func showAlert(message: String, completion: (() -> Void)? = nil) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+            completion?()
+        }))
+        present(alert, animated: true, completion: nil)
+    }
+
     private func navigateToFavoritesView() {
         // Assuming FavoritesViewController is the view controller that displays favorite recipes
         let favoritesViewController = FavoritesViewController()
@@ -179,11 +231,16 @@ class RecipeDetailViewController: UIViewController {
             instructionsTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             instructionsTextView.bottomAnchor.constraint(equalTo: favoriteButton.topAnchor, constant: -20),
             
-            favoriteButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            favoriteButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            favoriteButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -60),
+            favoriteButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            postButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            postButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
 }
+
+
 
 extension UIColor {
     static var customBackground: UIColor {
@@ -194,18 +251,13 @@ extension UIColor {
 
     static var customLabel: UIColor {
         return UIColor { traitCollection in
-            return traitCollection.userInterfaceStyle == .dark ? .white : .black
+            return traitCollection.userInterfaceStyle == .dark ? .lightGray : .black
         }
     }
 
     static var customButton: UIColor {
         return UIColor { traitCollection in
-            return traitCollection.userInterfaceStyle == .dark ? .systemBlue : .systemBlue
+            return traitCollection.userInterfaceStyle == .dark ? .lightGray : .systemBlue
         }
     }
-}
-
-extension Notification.Name {
-    static let recipeFavorited = Notification.Name("recipeFavorited")
-    static let recipeUnfavorited = Notification.Name("recipeUnfavorited")
 }

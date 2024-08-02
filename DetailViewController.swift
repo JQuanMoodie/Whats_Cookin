@@ -253,12 +253,27 @@ private func isUserFollowing(userID: String, completion: @escaping (Bool) -> Voi
 }
 }
 
-struct UserPost {
+struct UserPost: Identifiable {
     let postID: String
     let authorID: String
-    let content: String
+    let authorUsername: String
+    let title: String?
+    let image: String?
+    let servings: Int?
+    let readyInMinutes: Int?
+    let instructions: String?
+    let content: String? // For text-based posts
     let timestamp: Timestamp
+    let originalAuthorID: String?
+    let originalAuthorUsername: String?
+    let isRepost: Bool
+    var likesCount: Int
+    var likedUsers: [String] // Array of user IDs who liked the post
+    var userHasLiked: Bool // Added property to track if the current user has liked the post
+    var id: String { postID }
 }
+
+
 
 struct User {
     let uid: String

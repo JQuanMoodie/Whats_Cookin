@@ -47,30 +47,31 @@ class PostViewController: UIViewController {
     }
 
    @objc private func handlePostButtonTapped() {
-    guard let content = postTextField.text, !content.isEmpty, let currentUserID = Auth.auth().currentUser?.uid else {
-        showAlert(message: "Post content is empty or user not logged in.")
-        return
-    }
+        guard let content = postTextField.text, !content.isEmpty, let currentUserID = Auth.auth().currentUser?.uid else {
+            showAlert(message: "Post content is empty or user not logged in.")
+            return
+        }
 
-    let db = Firestore.firestore()
-    let newPostRef = db.collection("users").document(currentUserID).collection("posts").document()
-    let postData: [String: Any] = [
-        "content": content,
-        "timestamp": Timestamp()
-    ]
+        let db = Firestore.firestore()
+        let newPostRef = db.collection("users").document(currentUserID).collection("posts").document()
+        let postData: [String: Any] = [
+            "content": content,
+            "timestamp": Timestamp(),
+            "likesCount": 0, // Initialize likesCount to 0
+            "likedUsers": [] // Initialize likedUsers as an empty array
+        ]
 
-    newPostRef.setData(postData) { [weak self] error in
-        if let error = error {
-            self?.showAlert(message: "Error posting: \(error.localizedDescription)")
-        } else {
-            self?.showAlert(message: "Post created successfully.") { [weak self] in
-                self?.postTextField.text = ""
-                self?.dismiss(animated: true, completion: nil)
+        newPostRef.setData(postData) { [weak self] error in
+            if let error = error {
+                self?.showAlert(message: "Error posting: \(error.localizedDescription)")
+            } else {
+                self?.showAlert(message: "Post created successfully.") { [weak self] in
+                    self?.postTextField.text = ""
+                    self?.dismiss(animated: true, completion: nil)
+                }
             }
         }
     }
-}
-
 
     private func showAlert(message: String, completion: (() -> Void)? = nil) {
         let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
