@@ -9,13 +9,7 @@
 import UIKit
 import FirebaseAuth
 
-protocol FavoritesViewControllerDelegate: AnyObject {
-    func homeTabTapped()
-}
-
 class FavoritesViewController: UIViewController {
-
-    weak var delegate: FavoritesViewControllerDelegate?
     private let recipeService = RecipeService()
     var tableView = UITableView()
     var favRecipes: [Recipee] = []
@@ -138,15 +132,13 @@ extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
         cell.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         cell.set(recipee: recipe, isFavorited: true)
 
-        let action = UIAction { _ in
-            self.removeFavRecipe(recipe: recipe)
-        }
-        
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // Handle table cell selection
+        let recipeDetailVC = RecipeDetailViewController()
+        recipeDetailVC.recipe = favRecipes[indexPath.row]
+        navigationController?.pushViewController(recipeDetailVC, animated: true)
     }
 }
 
