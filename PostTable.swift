@@ -137,7 +137,7 @@ class PostTableViewCell: UITableViewCell {
             instructionsTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             instructionsTextView.heightAnchor.constraint(equalToConstant: 80),
 
-            contentTextView.topAnchor.constraint(equalTo: timestampLabel.bottomAnchor, constant: 8),
+            contentTextView.topAnchor.constraint(equalTo: instructionsTextView.bottomAnchor, constant: 8),
             contentTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             contentTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             contentTextView.heightAnchor.constraint(equalToConstant: 80),
