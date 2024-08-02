@@ -1,10 +1,11 @@
-//
 //  RecipeCell.swift
 //  WhatsCookin
 //
 //  Created by J’Quan Moodie on 7/14/24.
 //  Edited by: Raisa Methila
 // Edited by: Jevon Williams
+
+
 import UIKit
 
 class RecipeCell: UITableViewCell {
@@ -49,4 +50,3 @@ class RecipeCell: UITableViewCell {
         // No button to set title for
     }
 }
-

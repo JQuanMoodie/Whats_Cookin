@@ -14,7 +14,7 @@ class NetworkManager {
     
     private init() {}
     
-    func fetchRandomRecipes(completion: @escaping (Result<[Recipes], Error>) -> Void) {
+    func fetchRandomRecipes(completion: @escaping (Result<[Recipe], Error>) -> Void) {
         let urlString = "\(baseURL)?number=2&apiKey=\(apiKey)"
         
         guard let url = URL(string: urlString) else {
@@ -48,10 +48,10 @@ class NetworkManager {
 
 // Models
 struct RandomRecipeResponse: Decodable {
-    let recipes: [Recipes]
+    let recipes: [Recipe]
 }
 
-struct Recipes: Decodable {
+struct Recipe: Decodable {
     let id: Int
     let title: String
     let image: String? // This field contains the image type (e.g., "jpg")
