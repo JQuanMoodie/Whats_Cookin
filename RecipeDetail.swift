@@ -53,7 +53,6 @@ class RecipeDetailViewController: UIViewController {
 
     private let favoriteButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Favorite", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -69,7 +68,7 @@ class RecipeDetailViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.systemBackground
+        view.backgroundColor = UIColor.customBackground
         
         view.addSubview(titleLabel)
         view.addSubview(imageView)
@@ -87,22 +86,28 @@ class RecipeDetailViewController: UIViewController {
         updateFavoriteButtonTitle()
     }
 
-    private func setupData() {
-        guard let recipe = recipe else { return }
-        titleLabel.text = recipe.title
-        if let imageUrl = URL(string: recipe.image) {
-            imageView.load(url: imageUrl)
-        }
-        servingsLabel.text = "Servings: \(recipe.servings ?? 0)"
-        readyInMinutesLabel.text = "Ready in: \(recipe.readyInMinutes ?? 0) minutes"
-        instructionsTextView.text = recipe.instructions
+   private func setupData() {
+    guard let recipe = recipe else { return }
+    titleLabel.text = recipe.title
+    titleLabel.textColor = .customLabel
+    if let imageUrl = URL(string: recipe.image) {
+        imageView.load(url: imageUrl) // Ensure this method correctly loads images
     }
+    servingsLabel.text = "Servings: \(recipe.servings ?? 0)"
+    servingsLabel.textColor = .customLabel
+    readyInMinutesLabel.text = "Ready in: \(recipe.readyInMinutes ?? 0) minutes"
+    readyInMinutesLabel.textColor = .customLabel
+    instructionsTextView.text = recipe.instructions
+    instructionsTextView.backgroundColor = .customBackground
+    instructionsTextView.textColor = .customLabel
+}
+
 
     @objc private func favoriteButtonTapped() {
         guard let recipe = recipe else { return }
         
         guard let userId = Auth.auth().currentUser?.uid else {
-            print("User is not authenticated")
+            showAlert(message: "User is not authenticated")
             return
         }
 
@@ -113,11 +118,10 @@ class RecipeDetailViewController: UIViewController {
                 // Unfavorite the recipe
                 recipeRef.delete { error in
                     if let error = error {
-                        print("Error removing favorite recipe: \(error.localizedDescription)")
+                        self.showAlert(message: "Error removing favorite recipe: \(error.localizedDescription)")
                     } else {
-                        print("Recipe removed from favorites")
                         NotificationCenter.default.post(name: .recipeUnfavorited, object: recipe)
-                        self.navigateToFavoritesView()
+                        self.updateFavoriteButtonTitle()
                     }
                 }
             } else {
@@ -139,11 +143,10 @@ class RecipeDetailViewController: UIViewController {
                 
                 recipeRef.setData(favoriteRecipeData) { error in
                     if let error = error {
-                        print("Error saving favorite recipe: \(error.localizedDescription)")
+                        self.showAlert(message: "Error saving favorite recipe: \(error.localizedDescription)")
                     } else {
-                        print("Recipe saved as favorite")
                         NotificationCenter.default.post(name: .recipeFavorited, object: recipe)
-                        self.navigateToFavoritesView()
+                        self.updateFavoriteButtonTitle()
                     }
                 }
             }
@@ -159,8 +162,10 @@ class RecipeDetailViewController: UIViewController {
         recipeRef.getDocument { document, error in
             if let document = document, document.exists {
                 self.favoriteButton.setTitle("Unfavorite", for: .normal)
+                self.favoriteButton.setTitleColor(.systemRed, for: .normal)
             } else {
                 self.favoriteButton.setTitle("Favorite", for: .normal)
+                self.favoriteButton.setTitleColor(.customButton, for: .normal)
             }
         }
     }
@@ -180,8 +185,8 @@ class RecipeDetailViewController: UIViewController {
             "readyInMinutes": recipe.readyInMinutes ?? 0,
             "instructions": recipe.instructions,
             "timestamp": Timestamp(),
-            "likesCount": 0, // Initialize likesCount to 0
-            "likedUsers": [] // Initialize likedUsers as an empty array
+            "likesCount": 0,
+            "likedUsers": []
         ]
 
         newPostRef.setData(postData) { [weak self] error in
@@ -201,12 +206,6 @@ class RecipeDetailViewController: UIViewController {
             completion?()
         }))
         present(alert, animated: true, completion: nil)
-    }
-
-    private func navigateToFavoritesView() {
-        // Assuming FavoritesViewController is the view controller that displays favorite recipes
-        let favoritesViewController = FavoritesViewController()
-        navigationController?.pushViewController(favoritesViewController, animated: true)
     }
 
     private func setupConstraints() {
@@ -242,6 +241,7 @@ class RecipeDetailViewController: UIViewController {
 
 
 
+// UIColor extension for custom colors
 extension UIColor {
     static var customBackground: UIColor {
         return UIColor { traitCollection in

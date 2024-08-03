@@ -33,13 +33,17 @@ class RecipeCell: UITableViewCell {
         NSLayoutConstraint.activate([
             recipeImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             recipeImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
-            recipeImageView.widthAnchor.constraint(equalToConstant: 100),
-            recipeImageView.heightAnchor.constraint(equalToConstant: 100),
+            recipeImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+            recipeImageView.widthAnchor.constraint(equalTo: recipeImageView.heightAnchor), // Keep image view square
             
             titleLabel.leadingAnchor.constraint(equalTo: recipeImageView.trailingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
         ])
+        
+        recipeImageView.contentMode = .scaleAspectFill
+        recipeImageView.clipsToBounds = true
     }
 
     func set(recipee: Recipee, isFavorited: Bool) {

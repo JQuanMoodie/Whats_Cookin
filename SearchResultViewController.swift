@@ -15,7 +15,7 @@ class SearchResultViewController: UIViewController, UITableViewDataSource, UITab
     
     private let tableView: UITableView = {
         let tableView = UITableView()
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(RecipeCell.self, forCellReuseIdentifier: "RecipeCell")
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
@@ -38,28 +38,25 @@ class SearchResultViewController: UIViewController, UITableViewDataSource, UITab
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
-        if onlyInclude {
-            recipeService.fetchRecipes(query: query, includeIngredients: nil, excludeIngredients: nil) { [weak self] result in
-                switch result {
-                case .success(let recipes):
-                    DispatchQueue.main.async {
-                        self?.recipes = recipes
-                        self?.tableView.reloadData()
-                    }
-                case .failure(let error):
-                    print("Failed to fetch recipes: \(error)")
+        fetchRecipes()
+    }
+    
+    private func fetchRecipes() {
+        let includeIngredients = onlyInclude ? query : nil
+        let excludeIngredients = onlyInclude ? exclude : nil
+        
+        recipeService.fetchRecipes(query: query, includeIngredients: includeIngredients, excludeIngredients: excludeIngredients) { [weak self] result in
+            switch result {
+            case .success(let recipes):
+                DispatchQueue.main.async {
+                    print("Recipes fetched successfully: \(recipes)")
+                    self?.recipes = recipes
+                    self?.tableView.reloadData()
                 }
-            }
-        } else {
-            recipeService.fetchRecipes(query: query, includeIngredients: query, excludeIngredients: exclude) { [weak self] result in
-                switch result {
-                case .success(let recipes):
-                    DispatchQueue.main.async {
-                        self?.recipes = recipes
-                        self?.tableView.reloadData()
-                    }
-                case .failure(let error):
-                    print("Failed to fetch recipes: \(error)")
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    print("Error fetching recipes: \(error)")
+                    self?.showAlert(message: "Failed to fetch recipes: \(error.localizedDescription)")
                 }
             }
         }
@@ -70,9 +67,12 @@ class SearchResultViewController: UIViewController, UITableViewDataSource, UITab
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "RecipeCell", for: indexPath) as? RecipeCell else {
+            return UITableViewCell()
+        }
+        
         let recipe = recipes[indexPath.row]
-        cell.textLabel?.text = recipe.title
+        cell.set(recipee: recipe, isFavorited: false)  // Update this based on your app's logic for favorited state
         return cell
     }
     
@@ -83,4 +83,11 @@ class SearchResultViewController: UIViewController, UITableViewDataSource, UITab
         detailViewController.recipe = recipes[indexPath.row]
         navigationController?.pushViewController(detailViewController, animated: true)
     }
+    
+    private func showAlert(message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
 }
+

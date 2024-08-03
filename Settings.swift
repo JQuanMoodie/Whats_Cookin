@@ -10,7 +10,7 @@ import FirebaseAuth
 import FirebaseFirestore
 
 class SettingsViewController: UIViewController {
-    
+
     // UI Elements
     private let emailLabel: UILabel = {
         let label = UILabel()
@@ -24,14 +24,6 @@ class SettingsViewController: UIViewController {
         button.setTitle("Change password", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(changePasswordButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private let notificationsButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Notifications", for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(notificationsButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -71,7 +63,6 @@ class SettingsViewController: UIViewController {
         
         view.addSubview(emailLabel)
         view.addSubview(changePasswordButton)
-        view.addSubview(notificationsButton)
         view.addSubview(fontSizeLabel)
         view.addSubview(fontSizeSegmentedControl)
         view.addSubview(logoutButton)
@@ -95,11 +86,8 @@ class SettingsViewController: UIViewController {
             changePasswordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             changePasswordButton.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 20),
             
-            notificationsButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            notificationsButton.topAnchor.constraint(equalTo: changePasswordButton.bottomAnchor, constant: 20),
-            
             fontSizeLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            fontSizeLabel.topAnchor.constraint(equalTo: notificationsButton.bottomAnchor, constant: 20),
+            fontSizeLabel.topAnchor.constraint(equalTo: changePasswordButton.bottomAnchor, constant: 20),
             
             fontSizeSegmentedControl.centerYAnchor.constraint(equalTo: fontSizeLabel.centerYAnchor),
             fontSizeSegmentedControl.leadingAnchor.constraint(equalTo: fontSizeLabel.trailingAnchor, constant: 10),
@@ -200,23 +188,18 @@ class SettingsViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    @objc private func notificationsButtonTapped() {
-        // Handle notifications button tap
-    }
-    
     @objc private func logoutButtonTapped() {
         do {
             try Auth.auth().signOut()
-            print("Logged out successfully")
-            
             // Navigate to LoginViewController
-            if let window = UIApplication.shared.windows.first {
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = scene.windows.first {
                 let loginViewController = LoginViewController()
                 loginViewController.modalPresentationStyle = .fullScreen
                 window.rootViewController = loginViewController
                 window.makeKeyAndVisible()
             }
-            
+            print("User signed out successfully.")
         } catch let signOutError as NSError {
             print("Error signing out: %@", signOutError)
         }
@@ -245,13 +228,13 @@ class SettingsViewController: UIViewController {
                             try Auth.auth().signOut()
                             
                             // Navigate to LoginViewController
-                            if let window = UIApplication.shared.windows.first {
+                            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let window = scene.windows.first {
                                 let loginViewController = LoginViewController()
                                 loginViewController.modalPresentationStyle = .fullScreen
                                 window.rootViewController = loginViewController
                                 window.makeKeyAndVisible()
                             }
-                            
                         } catch let signOutError as NSError {
                             print("Error signing out: %@", signOutError)
                         }
@@ -263,9 +246,7 @@ class SettingsViewController: UIViewController {
         }
     }
     
-    // Function to delete user data from backend or Firestore
     private func deleteUserData(userId: String, completion: @escaping (Bool) -> Void) {
-        // Example code to delete user data from Firestore (replace with your own implementation)
         let db = Firestore.firestore()
         db.collection("users").document(userId).delete { error in
             if let error = error {
@@ -277,32 +258,28 @@ class SettingsViewController: UIViewController {
             }
         }
     }
-
-    // Method to update the font size of the email label
+    
     @objc private func fontSizeChanged() {
         updateFontSize()
     }
     
-    // Method to update the font size based on the selected segment
     private func updateFontSize() {
-        let selectedSegmentIndex = fontSizeSegmentedControl.selectedSegmentIndex
         let fontSize: CGFloat
-        
-        switch selectedSegmentIndex {
+        switch fontSizeSegmentedControl.selectedSegmentIndex {
         case 0:
-            fontSize = 12 // Small
+            fontSize = 14
         case 1:
-            fontSize = 16 // Medium
+            fontSize = 18
         case 2:
-            fontSize = 20 // Large
+            fontSize = 22
         default:
-            fontSize = 16 // Default to medium
+            fontSize = 18
         }
-        
         emailLabel.font = UIFont.systemFont(ofSize: fontSize)
+        changePasswordButton.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
+        fontSizeLabel.font = UIFont.systemFont(ofSize: fontSize)
+        fontSizeSegmentedControl.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fontSize)], for: .normal)
+        logoutButton.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
+        deleteAccountButton.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
     }
 }
-
-
-
-

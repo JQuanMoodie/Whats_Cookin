@@ -1,7 +1,9 @@
+
 //  HomeViewController.swift
 //  what'sCookin
 //
 //  Created by Raisa Methila on 7/12/24.
+
 
 
 import UIKit
@@ -104,30 +106,68 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         fetchRandomRecipes()
     }
     
-    private func setupSideMenu() {
-        sideMenuViewController = SidebarViewController()
-        addChild(sideMenuViewController)
-        view.addSubview(sideMenuViewController.view)
-        sideMenuViewController.didMove(toParent: self)
+private func setupSideMenu() {
 
-        // Set the initial frame for the side menu off-screen
-        sideMenuViewController.view.frame = CGRect(x: -view.frame.width * 1, y: 0, width: view.frame.width * 1, height: view.frame.height)
-        sideMenuViewController.view.autoresizingMask = [.flexibleHeight, .flexibleRightMargin]
-    }
+    sideMenuViewController = SidebarViewController()
+
+    addChild(sideMenuViewController)
+
+    view.addSubview(sideMenuViewController.view)
+
+    sideMenuViewController.didMove(toParent: self)
+
+
+
+
+    // Set initial frame for the side menu off-screen
+
+        sideMenuViewController.view.frame = CGRect(x: -view.frame.width * 0.5, y: 0, width: view.frame.width * 0.5, height: view.frame.height)
+
+    sideMenuViewController.view.autoresizingMask = [.flexibleHeight, .flexibleRightMargin]
+
+    sideMenuViewController.view.backgroundColor = .white // Optional: Set a background color
+
+
+
+
+    // Ensure side menu is above the collection view
+
+    view.bringSubviewToFront(sideMenuViewController.view)
+
+}
+
+
+
+
+
+
 
     @objc private func menuButtonTapped() {
+
         toggleSideMenu()
+
     }
+
+
+
 
     private func toggleSideMenu() {
-        let targetPosition: CGFloat = isSideMenuVisible ? -view.frame.width * 1 : 0
-        UIView.animate(withDuration: 0.3, animations: {
-            self.sideMenuViewController.view.frame.origin.x = targetPosition
-        }) { _ in
-            self.isSideMenuVisible.toggle()
-        }
+
+    let targetPosition: CGFloat = isSideMenuVisible ? -view.frame.width * 0.8 : 0
+
+    UIView.animate(withDuration: 0.3, animations: {
+
+        self.sideMenuViewController.view.frame.origin.x = targetPosition
+
+        self.view.bringSubviewToFront(self.sideMenuViewController.view) // Bring to front during animation
+
+    }) { _ in
+
+        self.isSideMenuVisible.toggle()
+
     }
 
+}
     @objc private func handleSwipeLeft(_ gesture: UISwipeGestureRecognizer) {
         if isSideMenuVisible {
             toggleSideMenu()

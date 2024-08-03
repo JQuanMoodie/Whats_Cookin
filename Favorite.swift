@@ -1,4 +1,5 @@
 
+
 //  FavoritesViewController.swift
 //  WhatsCookin
 //
@@ -102,9 +103,12 @@ class FavoritesViewController: UIViewController {
             return
         }
 
+        print("Fetching favorite recipes for user: \(userId)")
+
         recipeService.fetchFavoriteRecipes(userId: userId) { [weak self] result in
             switch result {
             case .success(let recipes):
+                print("Fetched recipes: \(recipes)")
                 DispatchQueue.main.async {
                     self?.favRecipes = recipes
                     self?.tableView.reloadData()
@@ -122,6 +126,7 @@ class FavoritesViewController: UIViewController {
 
 extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        print("Number of rows in section: \(favRecipes.count)")
         return favRecipes.count
     }
 
@@ -139,44 +144,5 @@ extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
         let recipeDetailVC = RecipeDetailViewController()
         recipeDetailVC.recipe = favRecipes[indexPath.row]
         navigationController?.pushViewController(recipeDetailVC, animated: true)
-    }
-}
-
-extension FavoritesViewController {
-    func addFavRecipe(recipe: Recipee) {
-        favRecipes.append(recipe)
-        guard let userId = Auth.auth().currentUser?.uid else {
-            print("User is not authenticated")
-            return
-        }
-        recipeService.saveRecipeToFavorites(recipe: recipe, userId: userId) { result in
-            switch result {
-            case .success:
-                print("Recipe added to favorites successfully.")
-            case .failure(let error):
-                print("Failed to add recipe to favorites: \(error)")
-            }
-        }
-    }
-
-    func removeFavRecipe(recipe: Recipee) {
-        if let index = favRecipes.firstIndex(where: { $0.id == recipe.id }) {
-            favRecipes.remove(at: index)
-            guard let userId = Auth.auth().currentUser?.uid else {
-                print("User is not authenticated")
-                return
-            }
-            recipeService.removeRecipe(recipeId: recipe.id, userId: userId) { result in
-                switch result {
-                case .success:
-                    print("Recipe removed successfully.")
-                    DispatchQueue.main.async {
-                        self.tableView.reloadData()
-                    }
-                case .failure(let error):
-                    print("Error removing recipe: \(error)")
-                }
-            }
-        }
     }
 }
