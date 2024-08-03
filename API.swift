@@ -1,8 +1,3 @@
-//
-//File for API integration 
-//
-//Rachel Wu
-// Edited: Jevon Williams
 
 //  File for API integration
 //  Authors:
