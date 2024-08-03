@@ -4,13 +4,11 @@
 //
 //  Created by Raisa Methila on 7/12/24.
 
-
-
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
-class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITabBarDelegate, UITabBarControllerDelegate {
+class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITabBarDelegate, UITabBarControllerDelegate, UITextFieldDelegate {
 
     // MARK: - UI Elements
 
@@ -32,9 +30,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private let searchButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Search", for: .normal)
-        button.setTitleColor(.black, for: .normal)
+        button.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
         return button
     }()
 
@@ -104,10 +102,13 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 
         // Add targets
         profileButton.addTarget(self, action: #selector(navigateToProfileView), for: .touchUpInside)
-        searchButton.addTarget(self, action: #selector(navigateToSearchViewController), for: .touchUpInside)
+        searchButton.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
 
         // Set tab bar delegate
         tabBar.delegate = self
+        
+        // Set text field delegate
+        searchTextField.delegate = self
 
         // Fetch random recipes
         fetchRandomRecipes()
@@ -184,6 +185,22 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 }
             case .failure(let error):
                 print("Failed to fetch random recipes: \(error)")
+            }
+        }
+    }
+
+    private func searchRecipes(query: String) {
+        print("Searching recipes with query: \(query)")
+        recipeService.fetchRecipes(query: query, includeIngredients: nil, excludeIngredients: nil) { [weak self] result in
+            switch result {
+            case .success(let recipes):
+                DispatchQueue.main.async {
+                    print("Search results: \(recipes)")
+                    self?.randomRecipes = recipes
+                    self?.collectionView.reloadData()
+                }
+            case .failure(let error):
+                print("Failed to search recipes: \(error)")
             }
         }
     }
@@ -287,6 +304,26 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             break
         }
     }
+
+    // MARK: - Search Button Action
+
+    @objc private func searchButtonTapped() {
+        guard let query = searchTextField.text, !query.isEmpty else {
+            print("Search query is empty")
+            return
+        }
+        searchRecipes(query: query)
+    }
+
+    // MARK: - TextField Delegate Method
+
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        if let query = textField.text, !query.isEmpty {
+            searchRecipes(query: query)
+        }
+        return true
+    }
 }
 
 // UIImageView extension to load images from URL
@@ -301,3 +338,5 @@ extension UIImageView {
         }
     }
 }
+
+
