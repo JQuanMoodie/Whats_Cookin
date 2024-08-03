@@ -1,9 +1,9 @@
+
 //  File for API integration
 //  Authors:
 //  Raisa Methila
 //  Rachel Wu
 //  Jevon Williams
-
 
 
 import Foundation
@@ -25,6 +25,10 @@ struct Recipee: Identifiable, Decodable {
     }
 }
 
+
+
+
+
 struct Ingredient: Codable, Identifiable {
     let id: UUID
     let name: String
@@ -44,6 +48,12 @@ struct Ingredient: Codable, Identifiable {
 }
 
 struct RecipeResponse: Decodable {
+    let results: [Recipee]
+}
+
+
+
+struct RandomRecipeResponse: Decodable {
     let recipes: [Recipee]
 }
 
@@ -59,9 +69,8 @@ class RecipeService {
     private let baseURL = "https://api.spoonacular.com/recipes/"
     private let db = Firestore.firestore()
     
-    // Fetch recipes with query parameters
     func fetchRecipes(query: String?, includeIngredients: String?, excludeIngredients: String?, completion: @escaping (Result<[Recipee], APIError>) -> Void) {
-        var urlString = "\(baseURL)complexSearch?apiKey=\(apiKey)"
+        var urlString = "\(baseURL)complexSearch?apiKey=\(apiKey)&number=10"
         
         if let query = query {
             let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
@@ -81,34 +90,43 @@ class RecipeService {
             return
         }
         
+        print("Fetching from URL: \(urlString)")
+        
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
+                print("Network error: \(error)")
                 completion(.failure(.networkError(error)))
                 return
             }
             
             guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                print("HTTP status code: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
                 completion(.failure(.noData))
                 return
             }
             
             guard let data = data else {
+                print("No data received")
                 completion(.failure(.noData))
                 return
             }
             
+            print("Received data: \(String(data: data, encoding: .utf8) ?? "nil")")
+            
             do {
                 let response = try JSONDecoder().decode(RecipeResponse.self, from: data)
-                let recipes = response.recipes
+                let recipes = response.results
+                print("Recipes decoded successfully: \(recipes)")
                 completion(.success(recipes))
             } catch {
+                print("Decoding error: \(error)")
                 completion(.failure(.decodingError(error)))
             }
         }
         task.resume()
     }
     
-    // Save recipe to Firestore
+    
     func saveRecipeToFavorites(recipe: Recipee, userId: String, completion: @escaping (Result<Void, Error>) -> Void) {
         let recipeData: [String: Any] = [
             "id": recipe.id,
@@ -138,104 +156,123 @@ class RecipeService {
         }
     }
     
-    // Remove recipe from Firestore
     func removeRecipe(recipeId: Int, userId: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        db.collection("favoriteRecipes")
-            .document("\(userId)")
-            .collection("recipes")
-            .document("\(recipeId)")
-            .delete { error in
-                if let error = error {
-                    completion(.failure(error))
-                } else {
-                    completion(.success(()))
-                }
-            }
-    }
-
-    // Fetch favorite recipes from Firestore
-    func fetchFavoriteRecipes(userId: String, completion: @escaping (Result<[Recipee], Error>) -> Void) {
-        db.collection("users").document(userId).collection("favoriteRecipes").getDocuments { snapshot, error in
+        db.collection("users").document(userId).collection("favoriteRecipes").document("\(recipeId)").delete { error in
             if let error = error {
                 completion(.failure(error))
             } else {
-                let recipes = snapshot?.documents.compactMap { document -> Recipee? in
-                    let data = document.data()
-                    guard
-                        let id = data["id"] as? Int,
-                        let title = data["title"] as? String,
-                        let image = data["image"] as? String,
-                        let imageType = data["imageType"] as? String
-                    else {
-                        return nil
-                    }
-                    
-                    let servings = data["servings"] as? Int
-                    let readyInMinutes = data["readyInMinutes"] as? Int
-                    let ingredientsData = data["ingredients"] as? [[String: Any]]
-                    let ingredients = ingredientsData?.compactMap { ingredientData -> Ingredient? in
-                        guard
-                            let idString = ingredientData["id"] as? String,
-                            let id = UUID(uuidString: idString),
-                            let name = ingredientData["name"] as? String,
-                            let amount = ingredientData["amount"] as? Double,
-                            let unit = ingredientData["unit"] as? String
-                        else {
-                            return nil
-                        }
-                        return Ingredient(id: id, name: name, amount: amount, unit: unit)
-                    }
-                    let instructions = data["instructions"] as? String
-                    
-                    return Recipee(
-                        id: id,
-                        title: title,
-                        image: image,
-                        servings: servings,
-                        readyInMinutes: readyInMinutes,
-                        ingredients: ingredients,
-                        instructions: instructions,
-                        imageType: imageType
-                    )
-                } ?? []
-                completion(.success(recipes))
+                completion(.success(()))
             }
         }
     }
     
-    // Fetch random recipes from Spoonacular
-    func fetchRandomRecipes(completion: @escaping (Result<[Recipee], Error>) -> Void) {
-        let urlString = "\(baseURL)random?number=2&apiKey=\(apiKey)"
-        print("Fetching from URL: \(urlString)")
-        
-        guard let url = URL(string: urlString) else {
-            completion(.failure(APIError.invalidURL))
+  func fetchFavoriteRecipes(userId: String, completion: @escaping (Result<[Recipee], Error>) -> Void) {
+    db.collection("users").document(userId).collection("favoriteRecipes").getDocuments { snapshot, error in
+        if let error = error {
+            print("Error fetching favorite recipes: \(error.localizedDescription)")
+            completion(.failure(error))
             return
         }
+        
+        guard let documents = snapshot?.documents else {
+            print("No documents found")
+            completion(.success([]))
+            return
+        }
+        
+        print("Fetched documents: \(documents.map { $0.data() })")
+        
+        let recipes = documents.compactMap { document -> Recipee? in
+            let data = document.data()
+            guard
+                let id = data["id"] as? Int,
+                let title = data["title"] as? String,
+                let image = data["image"] as? String,
+                let imageType = data["imageType"] as? String
+            else {
+                print("Missing data in document: \(data)")
+                return nil
+            }
+            
+            // Use optional binding for fields that might be missing
+            let servings = data["servings"] as? Int
+            let readyInMinutes = data["readyInMinutes"] as? Int
+            let ingredientsData = data["ingredients"] as? [[String: Any]]
+            let ingredients = ingredientsData?.compactMap { ingredientData -> Ingredient? in
+                guard
+                    let idString = ingredientData["id"] as? String,
+                    let id = UUID(uuidString: idString),
+                    let name = ingredientData["name"] as? String,
+                    let amount = ingredientData["amount"] as? Double,
+                    let unit = ingredientData["unit"] as? String
+                else {
+                    print("Missing data in ingredient: \(ingredientData)")
+                    return nil
+                }
+                return Ingredient(id: id, name: name, amount: amount, unit: unit)
+            }
+            let instructions = data["instructions"] as? String
+            
+            return Recipee(
+                id: id,
+                title: title,
+                image: image,
+                servings: servings,
+                readyInMinutes: readyInMinutes,
+                ingredients: ingredients,
+                instructions: instructions,
+                imageType: imageType
+            )
+        }
+        
+        print("Decoded recipes: \(recipes)")
+        completion(.success(recipes))
+    }
+}
+
+
+    
+    func fetchRandomRecipes(completion: @escaping (Result<[Recipee], APIError>) -> Void) {
+        let urlString = "\(baseURL)random?number=2&apiKey=\(apiKey)"
+        
+        guard let url = URL(string: urlString) else {
+            completion(.failure(.invalidURL))
+            return
+        }
+        
+        print("Fetching from URL: \(urlString)")
         
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
                 print("Network error: \(error)")
-                completion(.failure(APIError.networkError(error)))
+                completion(.failure(.networkError(error)))
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                print("HTTP status code: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+                completion(.failure(.noData))
                 return
             }
             
             guard let data = data else {
                 print("No data received")
-                completion(.failure(APIError.noData))
+                completion(.failure(.noData))
                 return
             }
             
+            print("Received data: \(String(data: data, encoding: .utf8) ?? "nil")")
+            
             do {
-                let response = try JSONDecoder().decode(RecipeResponse.self, from: data)
-                print("Decoded response: \(response)")
-                completion(.success(response.recipes))
+                let response = try JSONDecoder().decode(RandomRecipeResponse.self, from: data)
+                let recipes = response.recipes
+                print("Recipes decoded successfully: \(recipes)")
+                completion(.success(recipes))
             } catch {
                 print("Decoding error: \(error)")
-                completion(.failure(APIError.decodingError(error)))
+                completion(.failure(.decodingError(error)))
             }
         }
-        
         task.resume()
     }
 }
