@@ -5,7 +5,6 @@
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
-import WebKit
 
 class ShoppingCartViewController: UIViewController, UITableViewDataSource {
     
@@ -30,7 +29,7 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(didTapSearch))
         fetchCartItems()
     }
-
+    //items to cart
     @objc func fetchCartItems() {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         tableView.refreshControl?.beginRefreshing()
@@ -47,7 +46,7 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
             }
         }
     }
-
+    //searches through amazon web
     @objc func didTapSearch() {
         let alert = UIAlertController(title: "Search Amazon", message: nil, preferredStyle: .alert)
         alert.addTextField { field in
@@ -113,22 +112,5 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = cartItems[indexPath.row]
         return cell
-    }
-}
-
-class WebViewController: UIViewController {
-    var webView: WKWebView!
-    var url: URL?
-
-    override func loadView() {
-        webView = WKWebView()
-        view = webView
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        if let url = url {
-            webView.load(URLRequest(url: url))
-        }
     }
 }
