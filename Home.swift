@@ -34,6 +34,14 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    // Add home search bar
+    private let homeSearchBar: UISearchBar = {
+        let searchBar = UISearchBar()
+        searchBar.placeholder = "Search..."
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        return searchBar
+    }()
 
     private let tabBar: UITabBar = {
         let tabBar = UITabBar()
@@ -65,6 +73,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(menuButton)
         view.addSubview(profileButton)
         view.addSubview(titleLabel)
+        view.addSubview(homeSearchBar)
         view.addSubview(tabBar)
         
         // Setup side menu
@@ -184,7 +193,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(collectionView)
 
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            collectionView.topAnchor.constraint(equalTo: homeSearchBar.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             collectionView.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -20)
@@ -232,6 +241,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 
             titleLabel.topAnchor.constraint(equalTo: menuButton.bottomAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            homeSearchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            homeSearchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            homeSearchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -272,3 +285,4 @@ extension UIImageView {
         }
     }
 }
+
