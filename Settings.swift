@@ -4,7 +4,6 @@
 //  Created by Raisa Methila on 7/19/24.
 // Edited by Jevon 
 
-import Foundation
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
@@ -15,7 +14,9 @@ class SettingsViewController: UIViewController {
     private let emailLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
+        label.font = UIFont.preferredFont(forTextStyle: .body)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = UIColor.label // Dynamic color for text
         return label
     }()
     
@@ -23,6 +24,8 @@ class SettingsViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Change password", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitleColor(UIColor.systemBlue, for: .normal) // Dynamic color for button title
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .body)
         button.addTarget(self, action: #selector(changePasswordButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -30,7 +33,9 @@ class SettingsViewController: UIViewController {
     private let fontSizeLabel: UILabel = {
         let label = UILabel()
         label.text = "Font size:"
+        label.font = UIFont.preferredFont(forTextStyle: .body)
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = UIColor.label // Dynamic color for text
         return label
     }()
     
@@ -38,6 +43,7 @@ class SettingsViewController: UIViewController {
         let segmentedControl = UISegmentedControl(items: ["small", "medium", "large"])
         segmentedControl.selectedSegmentIndex = 1
         segmentedControl.translatesAutoresizingMaskIntoConstraints = false
+        segmentedControl.tintColor = UIColor.systemBlue // Dynamic color for segmented control
         return segmentedControl
     }()
     
@@ -45,6 +51,8 @@ class SettingsViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Log out", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitleColor(UIColor.systemRed, for: .normal) // Dynamic color for button title
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .body)
         button.addTarget(self, action: #selector(logoutButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -53,13 +61,15 @@ class SettingsViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Delete Account", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitleColor(UIColor.systemRed, for: .normal) // Dynamic color for button title
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .body)
         button.addTarget(self, action: #selector(deleteAccountButtonTapped), for: .touchUpInside)
         return button
     }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(named: "backgroundColor")
+        view.backgroundColor = UIColor.systemBackground // Dynamic color for background
         
         view.addSubview(emailLabel)
         view.addSubview(changePasswordButton)
@@ -191,29 +201,26 @@ class SettingsViewController: UIViewController {
     @objc private func logoutButtonTapped() {
         do {
             try Auth.auth().signOut()
-            // Navigate to LoginViewController
-            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let window = scene.windows.first {
-                let loginViewController = LoginViewController()
-                loginViewController.modalPresentationStyle = .fullScreen
-                window.rootViewController = loginViewController
-                window.makeKeyAndVisible()
-            }
-            print("User signed out successfully.")
+            navigateToLoginView()
         } catch let signOutError as NSError {
             print("Error signing out: %@", signOutError)
         }
     }
     
     @objc private func deleteAccountButtonTapped() {
-        let user = Auth.auth().currentUser
-        
-        guard let user = user else {
-            print("No user logged in.")
-            return
+        let alert = UIAlertController(title: "Delete Account", message: "Are you sure you want to delete your account? This action cannot be undone.", preferredStyle: .alert)
+        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.performAccountDeletion()
         }
+        alert.addAction(deleteAction)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+    
+    private func performAccountDeletion() {
+        guard let user = Auth.auth().currentUser else { return }
         
-        // Step 1: Delete user data from backend or Firestore (if needed)
+        // Step 1: Delete user data from Firestore
         deleteUserData(userId: user.uid) { [weak self] success in
             if success {
                 // Step 2: Delete the user account
@@ -282,5 +289,16 @@ class SettingsViewController: UIViewController {
         logoutButton.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
         deleteAccountButton.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
     }
+    
+    private func navigateToLoginView() {
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first {
+            let loginViewController = LoginViewController()
+            loginViewController.modalPresentationStyle = .fullScreen
+            window.rootViewController = loginViewController
+            window.makeKeyAndVisible()
+        }
+    }
 }
+
 
