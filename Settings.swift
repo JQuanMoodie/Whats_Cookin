@@ -59,7 +59,7 @@ class SettingsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = UIColor(named: "backgroundColor")
         
         view.addSubview(emailLabel)
         view.addSubview(changePasswordButton)
@@ -283,3 +283,4 @@ class SettingsViewController: UIViewController {
         deleteAccountButton.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
     }
 }
+
