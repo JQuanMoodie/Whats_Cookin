@@ -1,4 +1,3 @@
-
 //  HomeViewController.swift
 //  what'sCookin
 //
@@ -8,7 +7,7 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
-class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITabBarDelegate, UITabBarControllerDelegate, UITextFieldDelegate {
+class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITabBarDelegate, UITabBarControllerDelegate {
 
     // MARK: - UI Elements
 
@@ -28,28 +27,12 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         return button
     }()
 
-    private let searchButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
-        return button
-    }()
-
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "What's cookin"
         label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
-    }()
-
-    private let searchTextField: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "Search recipes with name or description"
-        textField.borderStyle = .roundedRect
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        return textField
     }()
 
     private let tabBar: UITabBar = {
@@ -82,8 +65,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(menuButton)
         view.addSubview(profileButton)
         view.addSubview(titleLabel)
-        view.addSubview(searchTextField)
-        view.addSubview(searchButton)
         view.addSubview(tabBar)
         
         // Setup side menu
@@ -102,14 +83,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 
         // Add targets
         profileButton.addTarget(self, action: #selector(navigateToProfileView), for: .touchUpInside)
-        searchButton.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
 
         // Set tab bar delegate
         tabBar.delegate = self
         
-        // Set text field delegate
-        searchTextField.delegate = self
-
         // Fetch random recipes
         fetchRandomRecipes()
     }
@@ -189,22 +166,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
 
-    private func searchRecipes(query: String) {
-        print("Searching recipes with query: \(query)")
-        recipeService.fetchRecipes(query: query, includeIngredients: nil, excludeIngredients: nil) { [weak self] result in
-            switch result {
-            case .success(let recipes):
-                DispatchQueue.main.async {
-                    print("Search results: \(recipes)")
-                    self?.randomRecipes = recipes
-                    self?.collectionView.reloadData()
-                }
-            case .failure(let error):
-                print("Failed to search recipes: \(error)")
-            }
-        }
-    }
-
     // MARK: - Collection View
 
     private func setupCollectionView() {
@@ -223,7 +184,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(collectionView)
 
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: 20),
+            collectionView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             collectionView.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -20)
@@ -272,13 +233,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             titleLabel.topAnchor.constraint(equalTo: menuButton.bottomAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            searchTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            searchTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            searchTextField.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -10),
-
-            searchButton.centerYAnchor.constraint(equalTo: searchTextField.centerYAnchor),
-            searchButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
@@ -304,26 +258,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             break
         }
     }
-
-    // MARK: - Search Button Action
-
-    @objc private func searchButtonTapped() {
-        guard let query = searchTextField.text, !query.isEmpty else {
-            print("Search query is empty")
-            return
-        }
-        searchRecipes(query: query)
-    }
-
-    // MARK: - TextField Delegate Method
-
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        if let query = textField.text, !query.isEmpty {
-            searchRecipes(query: query)
-        }
-        return true
-    }
 }
 
 // UIImageView extension to load images from URL
@@ -338,5 +272,3 @@ extension UIImageView {
         }
     }
 }
-
-
