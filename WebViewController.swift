@@ -4,13 +4,16 @@
 
 import UIKit
 import WebKit
+import FirebaseAuth
+import FirebaseFirestore
 
-class WebViewController: UIViewController {
+class WebViewController: UIViewController, WKNavigationDelegate {
     var webView: WKWebView!
     var url: URL?
-    
+
     override func loadView() {
         webView = WKWebView()
+        webView.navigationDelegate = self
         view = webView
     }
 
@@ -20,6 +23,7 @@ class WebViewController: UIViewController {
             webView.load(URLRequest(url: url))
         }
         setupAddToCartButton()
+        setupNavigationBar()
     }
 
     private func setupAddToCartButton() {
@@ -40,10 +44,30 @@ class WebViewController: UIViewController {
         ])
     }
 
+    private func setupNavigationBar() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonTapped))
+    }
+
+    @objc private func doneButtonTapped() {
+        navigationController?.popViewController(animated: true)
+    }
+
+    //add item to cart
     @objc private func addToCartButtonTapped() {
         guard let currentURL = webView.url else { return }
 
-        // find the item name on amazon url
+        // makes sure that web is fully loaded before users enter page
+        webView.evaluateJavaScript("document.readyState") { [weak self] result, error in
+            guard let readyState = result as? String, readyState == "complete" else {
+                print("Web content not fully loaded yet")
+                return
+            }
+
+            self?.extractAndAddItemToCart()
+        }
+    }
+
+    private func extractAndAddItemToCart() {
         webView.evaluateJavaScript("document.title") { [weak self] result, error in
             guard let title = result as? String, error == nil else {
                 print("Error extracting item title: \(String(describing: error))")
@@ -58,12 +82,18 @@ class WebViewController: UIViewController {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         let db = Firestore.firestore()
         let newItem: [String: Any] = ["name": name]
-        db.collection("users").document(userId).collection("shoppingCartItems").addDocument(data: newItem) { error in
+        db.collection("users").document(userId).collection("shoppingCartItems").addDocument(data: newItem) { [weak self] error in
             if let error = error {
                 print("Error adding document: \(error)")
             } else {
-                print("Item added to cart: \(name)")
+                self?.showAddToCartSuccessMessage(name: name)
             }
         }
+    }
+
+    private func showAddToCartSuccessMessage(name: String) {
+        let alert = UIAlertController(title: "Success", message: "\(name) has been added to your cart.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
