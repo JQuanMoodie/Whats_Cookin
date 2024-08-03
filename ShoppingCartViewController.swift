@@ -5,6 +5,7 @@
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
+import WebKit
 
 class ShoppingCartViewController: UIViewController, UITableViewDataSource {
     
@@ -26,7 +27,7 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
         let control = UIRefreshControl()
         control.addTarget(self, action: #selector(fetchCartItems), for: .valueChanged)
         tableView.refreshControl = control
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(didTapSearch))
         fetchCartItems()
     }
 
@@ -47,29 +48,27 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
         }
     }
 
-    @objc func didTapAdd() {
-        let alert = UIAlertController(title: "Add Item to Cart", message: nil, preferredStyle: .alert)
+    @objc func didTapSearch() {
+        let alert = UIAlertController(title: "Search Amazon", message: nil, preferredStyle: .alert)
         alert.addTextField { field in
-            field.placeholder = "Enter Item..."
+            field.placeholder = "Enter search query..."
         }
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: "Add", style: .default, handler: { [weak self] _ in
-            if let field = alert.textFields?.first, let text = field.text, !text.isEmpty {
-                self?.saveCartItem(name: text)
+        alert.addAction(UIAlertAction(title: "Search", style: .default, handler: { [weak self] _ in
+            if let field = alert.textFields?.first, let query = field.text, !query.isEmpty {
+                self?.searchAmazon(for: query)
             }
         }))
         present(alert, animated: true)
     }
 
-    @objc func saveCartItem(name: String) {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        let newItem: [String: Any] = ["name": name]
-        db.collection("users").document(userId).collection("shoppingCartItems").addDocument(data: newItem) { [weak self] error in
-            if let error = error {
-                print("Error adding document: \(error)")
-            } else {
-                self?.fetchCartItems()
-            }
+    func searchAmazon(for query: String) {
+        let formattedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let urlString = "https://www.amazon.com/s?k=\(formattedQuery)"
+        if let url = URL(string: urlString) {
+            let webViewVC = WebViewController()
+            webViewVC.url = url
+            navigationController?.pushViewController(webViewVC, animated: true)
         }
     }
 
@@ -117,3 +116,19 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
     }
 }
 
+class WebViewController: UIViewController {
+    var webView: WKWebView!
+    var url: URL?
+
+    override func loadView() {
+        webView = WKWebView()
+        view = webView
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        if let url = url {
+            webView.load(URLRequest(url: url))
+        }
+    }
+}
