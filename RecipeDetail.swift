@@ -64,6 +64,13 @@ class RecipeDetailViewController: UIViewController {
         return button
     }()
     
+    private let shareButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Share", for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
     private let db = Firestore.firestore()
 
     override func viewDidLoad() {
@@ -77,31 +84,36 @@ class RecipeDetailViewController: UIViewController {
         view.addSubview(instructionsTextView)
         view.addSubview(favoriteButton)
         view.addSubview(postButton)
+        view.addSubview(shareButton)
         
         setupConstraints()
         setupData()
         
         favoriteButton.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
         postButton.addTarget(self, action: #selector(postButtonTapped), for: .touchUpInside)
+        shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
         updateFavoriteButtonTitle()
     }
 
-   private func setupData() {
-    guard let recipe = recipe else { return }
-    titleLabel.text = recipe.title
-    titleLabel.textColor = .customLabel
-    if let imageUrl = URL(string: recipe.image) {
-        imageView.load(url: imageUrl) // Ensure this method correctly loads images
+    private func setupData() {
+        guard let recipe = recipe else { return }
+        titleLabel.text = recipe.title
+        titleLabel.textColor = .customLabel
+        if let imageUrl = URL(string: recipe.image) {
+            imageView.load(url: imageUrl)
+        }
+        servingsLabel.text = "Servings: \(recipe.servings ?? 0)"
+        servingsLabel.textColor = .customLabel
+        readyInMinutesLabel.text = "Ready in: \(recipe.readyInMinutes ?? 0) minutes"
+        readyInMinutesLabel.textColor = .customLabel
+        
+        // Debug log
+        print("Displaying instructions: \(recipe.instructions ?? "No instructions")")
+        
+        instructionsTextView.text = recipe.instructions
+        instructionsTextView.backgroundColor = .customBackground
+        instructionsTextView.textColor = .customLabel
     }
-    servingsLabel.text = "Servings: \(recipe.servings ?? 0)"
-    servingsLabel.textColor = .customLabel
-    readyInMinutesLabel.text = "Ready in: \(recipe.readyInMinutes ?? 0) minutes"
-    readyInMinutesLabel.textColor = .customLabel
-    instructionsTextView.text = recipe.instructions
-    instructionsTextView.backgroundColor = .customBackground
-    instructionsTextView.textColor = .customLabel
-}
-
 
     @objc private func favoriteButtonTapped() {
         guard let recipe = recipe else { return }
@@ -140,6 +152,9 @@ class RecipeDetailViewController: UIViewController {
                     ] } ?? [],
                     "instructions": recipe.instructions ?? ""
                 ]
+                
+                // Debug log
+                print("Saving favorite recipe with instructions: \(recipe.instructions ?? "No instructions")")
                 
                 recipeRef.setData(favoriteRecipeData) { error in
                     if let error = error {
@@ -193,51 +208,85 @@ class RecipeDetailViewController: UIViewController {
             if let error = error {
                 self?.showAlert(message: "Error posting: \(error.localizedDescription)")
             } else {
-                self?.showAlert(message: "Recipe posted successfully.") { [weak self] in
-                    self?.dismiss(animated: true, completion: nil)
-                }
+                self?.showAlert(message: "Post created successfully.")
+                self?.navigationController?.popViewController(animated: true)
             }
         }
     }
 
-    private func showAlert(message: String, completion: (() -> Void)? = nil) {
+    @objc private func shareButtonTapped() {
+        guard let recipe = recipe else { return }
+        
+        // Construct the share message
+        let recipeDetails = """
+        Check out this recipe: \(recipe.title)
+
+        Servings: \(recipe.servings ?? 0)
+        Ready in: \(recipe.readyInMinutes ?? 0) minutes
+
+        Ingredients:
+        \(recipe.ingredients?.map { "\($0.name): \($0.amount) \($0.unit)" }.joined(separator: "\n") ?? "No ingredients available.")
+
+        Instructions:
+        \(recipe.instructions ?? "No instructions available.")
+
+        """
+
+        var items: [Any] = [recipeDetails]
+        if let imageUrl = URL(string: recipe.image) {
+            items.append(imageUrl)
+        }
+        
+        let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        
+        present(activityViewController, animated: true, completion: nil)
+    }
+
+    private func showAlert(message: String) {
         let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
-            completion?()
-        }))
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            
-            imageView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            imageView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             imageView.heightAnchor.constraint(equalToConstant: 200),
+
+            servingsLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 16),
+            servingsLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            servingsLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            readyInMinutesLabel.topAnchor.constraint(equalTo: servingsLabel.bottomAnchor, constant: 8),
+            readyInMinutesLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            readyInMinutesLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            instructionsTextView.topAnchor.constraint(equalTo: readyInMinutesLabel.bottomAnchor, constant: 16),
+            instructionsTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            instructionsTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            instructionsTextView.heightAnchor.constraint(equalToConstant: 150),
+
+            favoriteButton.topAnchor.constraint(equalTo: instructionsTextView.bottomAnchor, constant: 16),
+            favoriteButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            favoriteButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            postButton.topAnchor.constraint(equalTo: favoriteButton.bottomAnchor, constant: 8),
+            postButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            postButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            servingsLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 20),
-            servingsLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            
-            readyInMinutesLabel.topAnchor.constraint(equalTo: servingsLabel.bottomAnchor, constant: 10),
-            readyInMinutesLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            
-            instructionsTextView.topAnchor.constraint(equalTo: readyInMinutesLabel.bottomAnchor, constant: 20),
-            instructionsTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            instructionsTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            instructionsTextView.bottomAnchor.constraint(equalTo: favoriteButton.topAnchor, constant: -20),
-            
-            favoriteButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -60),
-            favoriteButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            postButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            postButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            shareButton.topAnchor.constraint(equalTo: postButton.bottomAnchor, constant: 8),
+            shareButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            shareButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
     }
 }
+
 
 
 
@@ -261,3 +310,4 @@ extension UIColor {
         }
     }
 }
+
