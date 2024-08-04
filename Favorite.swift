@@ -98,26 +98,26 @@ class FavoritesViewController: UIViewController {
     }
 
     private func fetchFavoriteRecipes() {
-        guard let userId = Auth.auth().currentUser?.uid else {
-            print("User is not authenticated")
-            return
-        }
+    guard let userId = Auth.auth().currentUser?.uid else {
+        print("User is not authenticated")
+        return
+    }
 
-        print("Fetching favorite recipes for user: \(userId)")
+    print("Fetching favorite recipes for user: \(userId)")
 
-        recipeService.fetchFavoriteRecipes(userId: userId) { [weak self] result in
-            switch result {
-            case .success(let recipes):
-                print("Fetched recipes: \(recipes)")
-                DispatchQueue.main.async {
-                    self?.favRecipes = recipes
-                    self?.tableView.reloadData()
-                }
-            case .failure(let error):
-                print("Failed to fetch recipes: \(error)")
+    recipeService.fetchFavoriteRecipes(userId: userId) { [weak self] result in
+        switch result {
+        case .success(let recipes):
+            print("Fetched recipes: \(recipes)")
+            DispatchQueue.main.async {
+                self?.favRecipes = recipes
+                self?.tableView.reloadData()
             }
+        case .failure(let error):
+            print("Failed to fetch recipes: \(error)")
         }
     }
+}
 
     @objc private func profileButtonTapped() {
         // Handle profile button tap, transition to profile screen
@@ -146,3 +146,4 @@ extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
         navigationController?.pushViewController(recipeDetailVC, animated: true)
     }
 }
+
