@@ -1,7 +1,7 @@
 # How to use What's Cookin'
 
 Notifications :
-Upon loading up the app, you will be asked whether you like to turn on notifications or not. Regardless of what you choose, you’ll be able to change your choice by navigating to settings ->What’s Cookin’ -> Notifications.
+Upon loading up the app, you will be asked whether you'd like to turn on notifications or not. Regardless of what you choose, you’ll be able to change your choice by navigating to settings ->What’s Cookin’ -> Notifications.
 
 Login/Signup View: This is where you can either login to or signup for an account. Once you signup, a notification will appear , letting you know the account was created successfully. After you have signed up, you will be able to log in. After you have logged in, you’ll be navigated to the home view.
 
