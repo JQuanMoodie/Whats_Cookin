@@ -51,3 +51,14 @@ Favorites View: When the star icon is clicked in the tab at the bottom a view of
 Search View: Then the magnifying glass icon is chosen then the user is brought to a view where they are allowed to make a search using ingredients. There is also an option to click if you are excluding certain ingredients from the recipes you are searching for. By default, this option is already selected as no. If you choose yes then you must put ingredients in the second text bar further below and then click search which will bring up a page with your results.
 
 Search Results View: When a user fills in the information they want to use to make a search then this page is brought up showing the user the results of their search. It returns a list of recipes using the ingredients that the user has specified in their search and either with or without ingredients that the user has chosen to exclude as well depending on the user's search parameters.
+
+
+User Feed View: When you click on the “Feed” button in the Followings/Followers view, it will navigate you to the User Feed View. Here, the user will see both text-based and recipe-based posts from the users they follow, including themselves.
+
+Post View: When you click on the “Post” button in the Followings/Followers view, it will navigate you to the Post View. This view is where you can make text-based posts rather than recipe-based posts.
+
+Settings View: When you click on the gear button in the Home View’s tab bar, it’ll navigate you to the Settings View. Here, you’ll be able to delete your account, change your password, log out, or change the font size of all the text within the view.
+
+History View: When you click on the clock icon in the Home View’s tab bar, it’ll navigate you to the History View. Here, you’ll be able to see all of your interactions with the app.
+
+Shopping Cart View: When you click on the “Shopping Cart” tab within the Side Bar Menu View, it’ll navigate you to this view. Here, you can shop for ingredients by clicking on the search icon in the top right corner, typing the ingredient you’re looking for, and adding it to your shopping cart list. Once you search for the ingredient, the app will direct you to Amazon’s search page, where you can shop online to see if it’s available to purchase. If the item isn’t available to purchase or if you can’t find the item you’re looking for, you can press the “Add to Cart” button and save the item to your shopping list for a later purchase date. When you do find the item you’re looking for on Amazon, simply swipe left on the shopping list item and click delete.
