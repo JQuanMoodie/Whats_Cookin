@@ -3,7 +3,6 @@
 Installations:
 Xcode (latest version preferred)
 Firebase iOS SDK-https://github.com/firebase/firebase-ios-sdk. 
-To install using swift package manager
 
 Setup(Step 1): Add a Firebase configuration file
 1. Download the GoogleService-Info.plist to obtain your Firebase Apple platforms config file (GoogleService-Info.plist).
