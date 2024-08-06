@@ -1,5 +1,32 @@
 # How to use What's Cookin'
 
+Installations:
+Xcode (latest version preferred)
+Firebase iOS SDK-https://github.com/firebase/firebase-ios-sdk. 
+To install using swift package manager
+
+Setup(Step 1): Add a Firebase configuration file
+1. Download the GoogleService-Info.plist to obtain your Firebase Apple platforms config file (GoogleService-Info.plist).
+2. Move your config file into the root of your Xcode project. If prompted, select to add the config file to all targets.
+
+Setup(Step 2): Add Firebase SDKs to your app
+
+Use Swift Package Manager to install and manage Firebase dependencies.
+1. In Xcode, with your app project open, navigate to File > Add Packages.
+2. When prompted, add the Firebase Apple platforms SDK repository: 
+           https://github.com/firebase/firebase-ios-sdk
+3. Select the SDK version that you want to use.
+4. Choose the following Firebase libraries:
+        FirebaseAnalytics
+        FirebaseAuth
+        FirebaseFirestore
+        FirebaseStorage
+        FirebaseInstallations
+        FirebaseDatabase
+        FirebaseVertexAI-Preview
+         And any other libraries that have these      names.
+
+
 Notifications :
 Upon loading up the app, you will be asked whether you'd like to turn on notifications or not. Regardless of what you choose, you’ll be able to change your choice by navigating to settings ->What’s Cookin’ -> Notifications.
 
