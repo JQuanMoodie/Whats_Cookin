@@ -1,9 +1,9 @@
 //
-//  RecipeDetailView.swift
+//  RecipeDetailViewController.swift
 //  What's Cookin'
 //
-//  Created by Jevon Williams on 7/30/24.
-//
+//  Created by Jevon Williams  on 7/30/24.
+// modified by Jose Vasquez on 8/6/24
 
 import UIKit
 import FirebaseFirestore
@@ -12,6 +12,7 @@ import FirebaseAuth
 extension NSNotification.Name {
     static let recipeFavorited = NSNotification.Name("recipeFavorited")
     static let recipeUnfavorited = NSNotification.Name("recipeUnfavorited")
+    static let recipeCategorized = NSNotification.Name("recipeCategorized")
 }
 
 class RecipeDetailViewController: UIViewController {
@@ -70,6 +71,13 @@ class RecipeDetailViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+    
+    private let saveUnderButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Save Under", for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
 
     private let db = Firestore.firestore()
 
@@ -85,6 +93,7 @@ class RecipeDetailViewController: UIViewController {
         view.addSubview(favoriteButton)
         view.addSubview(postButton)
         view.addSubview(shareButton)
+        view.addSubview(saveUnderButton)
         
         setupConstraints()
         setupData()
@@ -92,6 +101,7 @@ class RecipeDetailViewController: UIViewController {
         favoriteButton.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
         postButton.addTarget(self, action: #selector(postButtonTapped), for: .touchUpInside)
         shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
+        saveUnderButton.addTarget(self, action: #selector(saveUnderButtonTapped), for: .touchUpInside)
         updateFavoriteButtonTitle()
     }
 
@@ -106,9 +116,6 @@ class RecipeDetailViewController: UIViewController {
         servingsLabel.textColor = .customLabel
         readyInMinutesLabel.text = "Ready in: \(recipe.readyInMinutes ?? 0) minutes"
         readyInMinutesLabel.textColor = .customLabel
-        
-        // Debug log
-        print("Displaying instructions: \(recipe.instructions ?? "No instructions")")
         
         instructionsTextView.text = recipe.instructions
         instructionsTextView.backgroundColor = .customBackground
@@ -152,9 +159,6 @@ class RecipeDetailViewController: UIViewController {
                     ] } ?? [],
                     "instructions": recipe.instructions ?? ""
                 ]
-                
-                // Debug log
-                print("Saving favorite recipe with instructions: \(recipe.instructions ?? "No instructions")")
                 
                 recipeRef.setData(favoriteRecipeData) { error in
                     if let error = error {
@@ -217,7 +221,6 @@ class RecipeDetailViewController: UIViewController {
     @objc private func shareButtonTapped() {
         guard let recipe = recipe else { return }
         
-        // Construct the share message
         let recipeDetails = """
         Check out this recipe: \(recipe.title)
 
@@ -229,7 +232,6 @@ class RecipeDetailViewController: UIViewController {
 
         Instructions:
         \(recipe.instructions ?? "No instructions available.")
-
         """
 
         var items: [Any] = [recipeDetails]
@@ -238,8 +240,40 @@ class RecipeDetailViewController: UIViewController {
         }
         
         let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
-        
         present(activityViewController, animated: true, completion: nil)
+    }
+
+    @objc private func saveUnderButtonTapped() {
+        let alertController = UIAlertController(title: "Save Under", message: "Select a category", preferredStyle: .actionSheet)
+        let categories = ["Breakfast", "Lunch", "Dinner", "Dessert"]
+
+        for category in categories {
+            let action = UIAlertAction(title: category, style: .default) { _ in
+                self.saveRecipeUnderCategory(category: category)
+            }
+            alertController.addAction(action)
+        }
+
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertController.addAction(cancelAction)
+        present(alertController, animated: true, completion: nil)
+    }
+
+    private func saveRecipeUnderCategory(category: String) {
+        guard let recipe = recipe else { return }
+        guard let userId = Auth.auth().currentUser?.uid else {
+            showAlert(message: "User is not authenticated")
+            return
+        }
+
+        let categoryRef = db.collection("users").document(userId).collection("recipeCategories").document(category)
+        categoryRef.setData(["recipes": FieldValue.arrayUnion([recipe.id])], merge: true) { error in
+            if let error = error {
+                self.showAlert(message: "Error saving recipe under \(category): \(error.localizedDescription)")
+            } else {
+                self.showAlert(message: "Recipe saved under \(category).")
+            }
+        }
     }
 
     private func showAlert(message: String) {
@@ -279,16 +313,17 @@ class RecipeDetailViewController: UIViewController {
             postButton.topAnchor.constraint(equalTo: favoriteButton.bottomAnchor, constant: 8),
             postButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             postButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            
+
             shareButton.topAnchor.constraint(equalTo: postButton.bottomAnchor, constant: 8),
             shareButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            shareButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+            shareButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            saveUnderButton.topAnchor.constraint(equalTo: shareButton.bottomAnchor, constant: 8),
+            saveUnderButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            saveUnderButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
     }
 }
-
-
-
 
 // UIColor extension for custom colors
 extension UIColor {
@@ -310,4 +345,3 @@ extension UIColor {
         }
     }
 }
-
