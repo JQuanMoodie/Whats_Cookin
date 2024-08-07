@@ -1,10 +1,7 @@
-
 //  HomeViewController.swift
 //  what'sCookin
 //
 //  Created by Raisa Methila on 7/12/24.
-
-
 
 import UIKit
 import FirebaseFirestore
@@ -106,68 +103,30 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         fetchRandomRecipes()
     }
     
-private func setupSideMenu() {
+    private func setupSideMenu() {
+        sideMenuViewController = SidebarViewController()
+        addChild(sideMenuViewController)
+        view.addSubview(sideMenuViewController.view)
+        sideMenuViewController.didMove(toParent: self)
 
-    sideMenuViewController = SidebarViewController()
-
-    addChild(sideMenuViewController)
-
-    view.addSubview(sideMenuViewController.view)
-
-    sideMenuViewController.didMove(toParent: self)
-
-
-
-
-    // Set initial frame for the side menu off-screen
-
-        sideMenuViewController.view.frame = CGRect(x: -view.frame.width * 0.5, y: 0, width: view.frame.width * 0.5, height: view.frame.height)
-
-    sideMenuViewController.view.autoresizingMask = [.flexibleHeight, .flexibleRightMargin]
-
-    sideMenuViewController.view.backgroundColor = .white // Optional: Set a background color
-
-
-
-
-    // Ensure side menu is above the collection view
-
-    view.bringSubviewToFront(sideMenuViewController.view)
-
-}
-
-
-
-
-
-
+        // Set the initial frame for the side menu off-screen
+        sideMenuViewController.view.frame = CGRect(x: -view.frame.width * 1, y: 0, width: view.frame.width * 1, height: view.frame.height)
+        sideMenuViewController.view.autoresizingMask = [.flexibleHeight, .flexibleRightMargin]
+    }
 
     @objc private func menuButtonTapped() {
-
         toggleSideMenu()
-
     }
-
-
-
 
     private func toggleSideMenu() {
-
-    let targetPosition: CGFloat = isSideMenuVisible ? -view.frame.width * 0.8 : 0
-
-    UIView.animate(withDuration: 0.3, animations: {
-
-        self.sideMenuViewController.view.frame.origin.x = targetPosition
-
-        self.view.bringSubviewToFront(self.sideMenuViewController.view) // Bring to front during animation
-
-    }) { _ in
-
-        self.isSideMenuVisible.toggle()
-
+        let targetPosition: CGFloat = isSideMenuVisible ? -view.frame.width * 1 : 0
+        UIView.animate(withDuration: 0.3, animations: {
+            self.sideMenuViewController.view.frame.origin.x = targetPosition
+        }) { _ in
+            self.isSideMenuVisible.toggle()
+        }
     }
 
-}
     @objc private func handleSwipeLeft(_ gesture: UISwipeGestureRecognizer) {
         if isSideMenuVisible {
             toggleSideMenu()
@@ -205,27 +164,36 @@ private func setupSideMenu() {
 
     private func fetchRandomRecipes() {
         print("Fetching random recipes...")
+        fetchRecipesBatch()
+    }
+    
+    private func fetchRecipesBatch() {
         recipeService.fetchRandomRecipes { [weak self] result in
             switch result {
             case .success(let recipes):
                 DispatchQueue.main.async {
-                    print("Fetched recipes successfully: \(recipes)")
-                    self?.randomRecipes = recipes
+                    print("Fetched batch of recipes: \(recipes)")
+                    self?.randomRecipes.append(contentsOf: recipes.prefix(2))
                     self?.collectionView.reloadData()
+                    if self?.randomRecipes.count ?? 0 < 10 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { // Delay to respect API rate limits
+                            self?.fetchRecipesBatch()
+                        }
+                    }
                 }
             case .failure(let error):
                 print("Failed to fetch random recipes: \(error)")
             }
         }
     }
-    
+
     private func homeRecipeFetch(query: String) {
         recipeService.fetchRecipes(query: query, includeIngredients: nil, excludeIngredients: nil) { [weak self] result in
             switch result {
             case .success(let recipes):
                 DispatchQueue.main.async {
                     let searchVC = HomeSearchViewController()
-                    searchVC.updateSearchResults(with: recipes)
+                    searchVC.updateSearchResults(with: Array(recipes.prefix(10))) // Limit to 10 recipes
                     self?.navigationController?.pushViewController(searchVC, animated: true)
                 }
             case .failure(let error):
@@ -352,3 +320,4 @@ extension UIImageView {
         }
     }
 }
+
