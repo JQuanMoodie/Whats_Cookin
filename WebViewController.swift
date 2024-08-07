@@ -51,7 +51,6 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     @objc private func doneButtonTapped() {
         navigationController?.popViewController(animated: true)
     }
-
     //add item to cart
     @objc private func addToCartButtonTapped() {
         guard let currentURL = webView.url else { return }
@@ -92,8 +91,13 @@ class WebViewController: UIViewController, WKNavigationDelegate {
     }
 
     private func showAddToCartSuccessMessage(name: String) {
-        let alert = UIAlertController(title: "Success", message: "\(name) has been added to your cart.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        let alert = UIAlertController(title: "Added to Cart", message: "\(name) has been added to your cart.", preferredStyle: .alert)
         present(alert, animated: true)
+        //smoother transition for users
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            alert.dismiss(animated: true, completion: {
+                self.navigationController?.popViewController(animated: true)
+            })
+        }
     }
 }
