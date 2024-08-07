@@ -94,8 +94,8 @@ class FavoritesViewController: UIViewController {
 
             tableView.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: 20),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: searchTextField.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: searchTextField.trailingAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
         ])
     }
     
@@ -139,8 +139,8 @@ class FavoritesViewController: UIViewController {
     }
     
     @objc private func searchButtonTapped() {
-        var search = searchTextField.text ?? ""
-        var searchTableView = UITableView()
+        let search = searchTextField.text ?? ""
+        let searchTableView = UITableView()
         tableView.removeFromSuperview()
         searchedRecipes = []
         if search != ""
@@ -231,8 +231,4 @@ extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
         }
         
     }
-}
-
-#Preview{
-    FavoritesViewController()
 }
