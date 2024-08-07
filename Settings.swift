@@ -210,58 +210,85 @@ class SettingsViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    private func deleteUserAccount() {
-        guard let user = Auth.auth().currentUser else { return }
-        let db = Firestore.firestore()
+   private func deleteUserAccount() {
+    guard let user = Auth.auth().currentUser else { return }
+    let db = Firestore.firestore()
+    
+    let userID = user.uid
+    
+    // Example collections and subcollections
+    let collectionsToDelete = [
+        "posts",
+        "groceryItems",
+        "following",
+        "followers",
+        "shoppingCartItems",
+        "savedRecipes",
+        "favoriteRecipes"
+    ]
+    
+    let userDocument = db.collection("users").document(userID)
+    let batch = db.batch()
+    
+    // Function to delete a collection
+    func deleteCollection(_ collectionPath: String, completion: @escaping (Error?) -> Void) {
+        let collectionRef = db.collection("users").document(userID).collection(collectionPath)
         
-        // Delete user's posts, favorites, and any other related data
-        let userID = user.uid
-        
-        // Example collections
-        let postsCollection = db.collection("posts")
-        let favoritesCollection = db.collection("users").document(userID).collection("favorites")
-        let userDocument = db.collection("users").document(userID)
-        
-        let batch = db.batch()
-        
-        postsCollection.whereField("userID", isEqualTo: userID).getDocuments { snapshot, error in
+        collectionRef.getDocuments { snapshot, error in
             if let error = error {
-                self.showErrorAlert(message: "Error fetching posts: \(error.localizedDescription)")
+                completion(error)
                 return
             }
             
-            for document in snapshot!.documents {
+            guard let documents = snapshot?.documents else {
+                completion(nil)
+                return
+            }
+            
+            for document in documents {
                 batch.deleteDocument(document.reference)
             }
             
-            favoritesCollection.getDocuments { snapshot, error in
+            completion(nil)
+        }
+    }
+    
+    // Delete all collections in batch
+    let dispatchGroup = DispatchGroup()
+    
+    for collection in collectionsToDelete {
+        dispatchGroup.enter()
+        deleteCollection(collection) { error in
+            if let error = error {
+                self.showErrorAlert(message: "Error deleting \(collection): \(error.localizedDescription)")
+            }
+            dispatchGroup.leave()
+        }
+    }
+    
+    // After all collections are deleted, delete the user document and commit the batch
+    dispatchGroup.notify(queue: .main) {
+        batch.deleteDocument(userDocument)
+        
+        batch.commit { error in
+            if let error = error {
+                self.showErrorAlert(message: "Error deleting user data: \(error.localizedDescription)")
+                return
+            }
+            
+            // Delete user account
+            user.delete { error in
                 if let error = error {
-                    self.showErrorAlert(message: "Error fetching favorites: \(error.localizedDescription)")
-                    return
-                }
-                
-                for document in snapshot!.documents {
-                    batch.deleteDocument(document.reference)
-                }
-                
-                batch.deleteDocument(userDocument)
-                
-                batch.commit { error in
-                    if let error = error {
-                        self.showErrorAlert(message: "Error deleting user data: \(error.localizedDescription)")
-                    } else {
-                        user.delete { error in
-                            if let error = error {
-                                self.showErrorAlert(message: "Error deleting account: \(error.localizedDescription)")
-                            } else {
-                                self.navigateToLoginView()
-                            }
-                        }
-                    }
+                    self.showErrorAlert(message: "Error deleting account: \(error.localizedDescription)")
+                } else {
+                    self.navigateToLoginView()
                 }
             }
         }
     }
+}
+
+
     
     private func navigateToLoginView() {
         let loginViewController = LoginViewController()
