@@ -14,22 +14,29 @@ class FavoritesViewController: UIViewController {
     private let recipeService = RecipeService()
     var tableView = UITableView()
     var favRecipes: [Recipee] = []
-
-    private let menuButton: UIButton = {
-        let button = UIButton()
-        button.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
+    var searchedRecipes: [Recipee] = []
+    private var sideMenuViewController: SidebarViewController!
+    private var isSideMenuVisible = false
 
     private let searchTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Search Through Your Favorite Recipes"
+        textField.placeholder = "Search Favorites Using The Title"
         textField.borderStyle = .roundedRect
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
 
+    private let searchButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Search", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.backgroundColor = .white
+        button.layer.cornerRadius = 10
+        button.layer.borderWidth = 1
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     private let profileButton: UIButton = {
         let button = UIButton()
         button.setTitle("Profile", for: .normal)
@@ -54,20 +61,26 @@ class FavoritesViewController: UIViewController {
     }
 
     private func setupUI() {
-        view.addSubview(menuButton)
         view.addSubview(searchTextField)
+        view.addSubview(searchButton)
         view.addSubview(profileButton)
         view.addSubview(titleLabel)
         configureTableView()
         setupConstraints()
-
-        profileButton.addTarget(self, action: #selector(profileButtonTapped), for: .touchUpInside)
+        
+        // Add targets
+        profileButton.addTarget(self, action: #selector(navigateToProfileView), for: .touchUpInside)
+        
+        searchButton.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
+        
     }
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            menuButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            menuButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            searchButton.topAnchor.constraint(equalTo: searchTextField.topAnchor),
+            searchButton.leadingAnchor.constraint(equalTo: searchTextField.trailingAnchor, constant: 5),
+            searchButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            searchButton.bottomAnchor.constraint(equalTo: searchTextField.bottomAnchor),
 
             profileButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             profileButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
@@ -77,7 +90,7 @@ class FavoritesViewController: UIViewController {
 
             searchTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             searchTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            searchTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            searchTextField.trailingAnchor.constraint(equalTo: profileButton.leadingAnchor, constant: -20),
 
             tableView.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: 20),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
@@ -85,9 +98,10 @@ class FavoritesViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: searchTextField.trailingAnchor),
         ])
     }
-
+    
     private func configureTableView() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.tag = 1
         tableView.rowHeight = 100
         tableView.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
         tableView.register(RecipeCell.self, forCellReuseIdentifier: "RecipeCell")
@@ -119,31 +133,106 @@ class FavoritesViewController: UIViewController {
     }
 }
 
-    @objc private func profileButtonTapped() {
-        // Handle profile button tap, transition to profile screen
+    @objc private func navigateToProfileView() {
+        let profileViewController = ProfileViewController()
+        navigationController?.pushViewController(profileViewController, animated: true)
+    }
+    
+    @objc private func searchButtonTapped() {
+        var search = searchTextField.text ?? ""
+        var searchTableView = UITableView()
+        tableView.removeFromSuperview()
+        searchedRecipes = []
+        if search != ""
+        {
+            for recipe in favRecipes
+            {
+                if recipe.title.contains(search)
+                {
+                    searchedRecipes.append(recipe)
+                }
+            }
+            searchTableView.translatesAutoresizingMaskIntoConstraints = false
+            searchTableView.rowHeight = 100
+            searchTableView.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
+            searchTableView.register(RecipeCell.self, forCellReuseIdentifier: "RecipeCell")
+            searchTableView.showsVerticalScrollIndicator = false
+            searchTableView.delegate = self
+            searchTableView.dataSource = self
+            view.addSubview(searchTableView)
+            NSLayoutConstraint.activate([
+                searchTableView.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: 20),
+                searchTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+                searchTableView.leadingAnchor.constraint(equalTo: searchTextField.leadingAnchor),
+                searchTableView.trailingAnchor.constraint(equalTo: searchButton.trailingAnchor),
+            ])
+        }
+        else
+        {
+            configureTableView()
+            NSLayoutConstraint.activate([
+                tableView.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: 20),
+                tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+                tableView.leadingAnchor.constraint(equalTo: searchTextField.leadingAnchor),
+                tableView.trailingAnchor.constraint(equalTo: searchButton.trailingAnchor),
+            ])
+        }
     }
 }
 
 extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print("Number of rows in section: \(favRecipes.count)")
-        return favRecipes.count
+        if tableView.tag == 1
+        {
+            return favRecipes.count
+        }
+        else
+        {
+            return searchedRecipes.count
+        }
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "RecipeCell", for: indexPath) as! RecipeCell
-        let recipe = favRecipes[indexPath.row]
+        if tableView.tag == 1
+        {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "RecipeCell", for: indexPath) as! RecipeCell
+            let recipe = favRecipes[indexPath.row]
 
-        cell.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
-        cell.set(recipee: recipe, isFavorited: true)
+            cell.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
+            cell.set(recipee: recipe, isFavorited: true)
 
-        return cell
+            return cell
+        }
+        else
+        {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "RecipeCell", for: indexPath) as! RecipeCell
+            let recipe = searchedRecipes[indexPath.row]
+
+            cell.backgroundColor = UIColor(red: 240/255, green: 180/255, blue: 150/255, alpha: 1)
+            cell.set(recipee: recipe, isFavorited: true)
+
+            return cell
+        }
+        
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let recipeDetailVC = RecipeDetailViewController()
-        recipeDetailVC.recipe = favRecipes[indexPath.row]
-        navigationController?.pushViewController(recipeDetailVC, animated: true)
+        if tableView.tag == 1
+        {
+            let recipeDetailVC = RecipeDetailViewController()
+            recipeDetailVC.recipe = favRecipes[indexPath.row]
+            navigationController?.pushViewController(recipeDetailVC, animated: true)
+        }
+        else
+        {
+            let recipeDetailVC = RecipeDetailViewController()
+            recipeDetailVC.recipe = searchedRecipes[indexPath.row]
+            navigationController?.pushViewController(recipeDetailVC, animated: true)
+        }
+        
     }
 }
 
+#Preview{
+    FavoritesViewController()
+}
