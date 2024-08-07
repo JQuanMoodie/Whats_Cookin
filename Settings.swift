@@ -22,9 +22,9 @@ class SettingsViewController: UIViewController {
     
     private let changePasswordButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Change password", for: .normal)
+        button.setTitle("Change Password", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitleColor(UIColor.systemBlue, for: .normal) // Dynamic color for button title
+        button.setTitleColor(UIColor.systemBlue, for: .normal)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .body)
         button.addTarget(self, action: #selector(changePasswordButtonTapped), for: .touchUpInside)
         return button
@@ -32,26 +32,26 @@ class SettingsViewController: UIViewController {
     
     private let fontSizeLabel: UILabel = {
         let label = UILabel()
-        label.text = "Font size:"
+        label.text = "Font Size:"
         label.font = UIFont.preferredFont(forTextStyle: .body)
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = UIColor.label // Dynamic color for text
+        label.textColor = UIColor.label
         return label
     }()
     
     private let fontSizeSegmentedControl: UISegmentedControl = {
-        let segmentedControl = UISegmentedControl(items: ["small", "medium", "large"])
+        let segmentedControl = UISegmentedControl(items: ["Small", "Medium", "Large"])
         segmentedControl.selectedSegmentIndex = 1
         segmentedControl.translatesAutoresizingMaskIntoConstraints = false
-        segmentedControl.tintColor = UIColor.systemBlue // Dynamic color for segmented control
+        segmentedControl.tintColor = UIColor.systemBlue
         return segmentedControl
     }()
     
     private let logoutButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Log out", for: .normal)
+        button.setTitle("Log Out", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitleColor(UIColor.systemRed, for: .normal) // Dynamic color for button title
+        button.setTitleColor(UIColor.systemRed, for: .normal)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .body)
         button.addTarget(self, action: #selector(logoutButtonTapped), for: .touchUpInside)
         return button
@@ -61,7 +61,7 @@ class SettingsViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Delete Account", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitleColor(UIColor.systemRed, for: .normal) // Dynamic color for button title
+        button.setTitleColor(UIColor.systemRed, for: .normal)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .body)
         button.addTarget(self, action: #selector(deleteAccountButtonTapped), for: .touchUpInside)
         return button
@@ -71,47 +71,41 @@ class SettingsViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemBackground // Dynamic color for background
         
-        view.addSubview(emailLabel)
-        view.addSubview(changePasswordButton)
-        view.addSubview(fontSizeLabel)
-        view.addSubview(fontSizeSegmentedControl)
-        view.addSubview(logoutButton)
-        view.addSubview(deleteAccountButton)
-        
+        setupSubviews()
         setupConstraints()
         updateEmailLabel()
         
-        // Set up the segmented control action
         fontSizeSegmentedControl.addTarget(self, action: #selector(fontSizeChanged), for: .valueChanged)
-        
-        // Set initial font size
         updateFontSize()
+    }
+    
+    private func setupSubviews() {
+        let settingsStackView = UIStackView(arrangedSubviews: [
+            emailLabel,
+            changePasswordButton,
+            fontSizeLabel,
+            fontSizeSegmentedControl,
+            logoutButton,
+            deleteAccountButton
+        ])
+        settingsStackView.axis = .vertical
+        settingsStackView.alignment = .center
+        settingsStackView.spacing = 20
+        settingsStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(settingsStackView)
     }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            emailLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emailLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 100),
+            emailLabel.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
+            changePasswordButton.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
+            fontSizeLabel.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
+            fontSizeSegmentedControl.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
+            logoutButton.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
+            deleteAccountButton.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9),
             
-            changePasswordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            changePasswordButton.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 20),
-            
-            fontSizeLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            fontSizeLabel.topAnchor.constraint(equalTo: changePasswordButton.bottomAnchor, constant: 20),
-            
-            fontSizeSegmentedControl.centerYAnchor.constraint(equalTo: fontSizeLabel.centerYAnchor),
-            fontSizeSegmentedControl.leadingAnchor.constraint(equalTo: fontSizeLabel.trailingAnchor, constant: 10),
-            fontSizeSegmentedControl.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            
-            logoutButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            logoutButton.topAnchor.constraint(equalTo: fontSizeSegmentedControl.bottomAnchor, constant: 40),
-            logoutButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            logoutButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            
-            deleteAccountButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            deleteAccountButton.topAnchor.constraint(equalTo: logoutButton.bottomAnchor, constant: 20),
-            deleteAccountButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            deleteAccountButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            view.subviews.first!.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            view.subviews.first!.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40)
         ])
     }
     
@@ -209,96 +203,95 @@ class SettingsViewController: UIViewController {
     
     @objc private func deleteAccountButtonTapped() {
         let alert = UIAlertController(title: "Delete Account", message: "Are you sure you want to delete your account? This action cannot be undone.", preferredStyle: .alert)
-        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
-            self?.performAccountDeletion()
-        }
-        alert.addAction(deleteAction)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.deleteUserAccount()
+        })
         present(alert, animated: true, completion: nil)
     }
     
-    private func performAccountDeletion() {
+    private func deleteUserAccount() {
         guard let user = Auth.auth().currentUser else { return }
+        let db = Firestore.firestore()
         
-        // Step 1: Delete user data from Firestore
-        deleteUserData(userId: user.uid) { [weak self] success in
-            if success {
-                // Step 2: Delete the user account
-                user.delete { error in
+        // Delete user's posts, favorites, and any other related data
+        let userID = user.uid
+        
+        // Example collections
+        let postsCollection = db.collection("posts")
+        let favoritesCollection = db.collection("users").document(userID).collection("favorites")
+        let userDocument = db.collection("users").document(userID)
+        
+        let batch = db.batch()
+        
+        postsCollection.whereField("userID", isEqualTo: userID).getDocuments { snapshot, error in
+            if let error = error {
+                self.showErrorAlert(message: "Error fetching posts: \(error.localizedDescription)")
+                return
+            }
+            
+            for document in snapshot!.documents {
+                batch.deleteDocument(document.reference)
+            }
+            
+            favoritesCollection.getDocuments { snapshot, error in
+                if let error = error {
+                    self.showErrorAlert(message: "Error fetching favorites: \(error.localizedDescription)")
+                    return
+                }
+                
+                for document in snapshot!.documents {
+                    batch.deleteDocument(document.reference)
+                }
+                
+                batch.deleteDocument(userDocument)
+                
+                batch.commit { error in
                     if let error = error {
-                        print("Error deleting account: \(error.localizedDescription)")
+                        self.showErrorAlert(message: "Error deleting user data: \(error.localizedDescription)")
                     } else {
-                        print("Account deleted successfully")
-                        
-                        // Step 3: Log out the user
-                        do {
-                            try Auth.auth().signOut()
-                            
-                            // Navigate to LoginViewController
-                            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                               let window = scene.windows.first {
-                                let loginViewController = LoginViewController()
-                                loginViewController.modalPresentationStyle = .fullScreen
-                                window.rootViewController = loginViewController
-                                window.makeKeyAndVisible()
+                        user.delete { error in
+                            if let error = error {
+                                self.showErrorAlert(message: "Error deleting account: \(error.localizedDescription)")
+                            } else {
+                                self.navigateToLoginView()
                             }
-                        } catch let signOutError as NSError {
-                            print("Error signing out: %@", signOutError)
                         }
                     }
                 }
-            } else {
-                print("Failed to delete user data.")
             }
         }
     }
     
-    private func deleteUserData(userId: String, completion: @escaping (Bool) -> Void) {
-        let db = Firestore.firestore()
-        db.collection("users").document(userId).delete { error in
-            if let error = error {
-                print("Error deleting user data: \(error.localizedDescription)")
-                completion(false)
-            } else {
-                print("User data deleted successfully")
-                completion(true)
-            }
-        }
+    private func navigateToLoginView() {
+        let loginViewController = LoginViewController()
+        loginViewController.modalPresentationStyle = .fullScreen
+        present(loginViewController, animated: true, completion: nil)
     }
-    
-    @objc private func fontSizeChanged() {
+
+    @objc private func fontSizeChanged(_ sender: UISegmentedControl) {
         updateFontSize()
     }
     
     private func updateFontSize() {
+        let selectedSegmentIndex = fontSizeSegmentedControl.selectedSegmentIndex
         let fontSize: CGFloat
-        switch fontSizeSegmentedControl.selectedSegmentIndex {
+        
+        switch selectedSegmentIndex {
         case 0:
-            fontSize = 14
+            fontSize = 14.0
         case 1:
-            fontSize = 18
+            fontSize = 17.0
         case 2:
-            fontSize = 22
+            fontSize = 20.0
         default:
-            fontSize = 18
+            fontSize = 17.0
         }
+        
         emailLabel.font = UIFont.systemFont(ofSize: fontSize)
         changePasswordButton.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
         fontSizeLabel.font = UIFont.systemFont(ofSize: fontSize)
-        fontSizeSegmentedControl.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fontSize)], for: .normal)
         logoutButton.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
         deleteAccountButton.titleLabel?.font = UIFont.systemFont(ofSize: fontSize)
     }
-    
-    private func navigateToLoginView() {
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = scene.windows.first {
-            let loginViewController = LoginViewController()
-            loginViewController.modalPresentationStyle = .fullScreen
-            window.rootViewController = loginViewController
-            window.makeKeyAndVisible()
-        }
-    }
 }
-
-

@@ -14,8 +14,8 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
-     let profileImageView = UIImageView()
-     let nameLabel = UILabel()
+    let profileImageView = UIImageView()
+    let nameLabel = UILabel()
     private let bioTextField = UITextField()
     private let statusLabel = UILabel()
     private let statusButton = UIButton()
@@ -23,13 +23,12 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
     private var isOnline: Bool = false
     private var bioInput: String = ""
     
-
     let viewModel = ProfileViewModel()
     private var cancellables = Set<AnyCancellable>()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemGray
+        view.backgroundColor = .systemBackground
         setupViews()
         loadProfileDataFromFirestore()
 
@@ -50,37 +49,40 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        loadProfileDataFromFirestore() // Ensure the profile data is loaded every time the view appears
+        loadProfileDataFromFirestore()
     }
 
     private func setupViews() {
-        // Setup code for views ...
-
         profileImageView.contentMode = .scaleAspectFill
-        profileImageView.layer.cornerRadius = 40
+        profileImageView.layer.cornerRadius = 50
         profileImageView.clipsToBounds = true
         profileImageView.backgroundColor = .systemGray4
 
-        nameLabel.font = .systemFont(ofSize: 22, weight: .semibold)
-        nameLabel.textColor = .label // Adjusts to dark mode
+        nameLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        nameLabel.textColor = .label
 
-        bioTextField.placeholder = "Bio"
-        bioTextField.font = .systemFont(ofSize: 20)
+        bioTextField.placeholder = "Write something about yourself..."
+        bioTextField.font = .systemFont(ofSize: 18)
         bioTextField.borderStyle = .roundedRect
-        bioTextField.backgroundColor = .secondarySystemBackground // Adjusts to dark mode
-        bioTextField.textColor = .label // Adjusts to dark mode
+        bioTextField.backgroundColor = .systemGray6
+        bioTextField.textColor = .label
+        bioTextField.textAlignment = .center
 
-        statusLabel.font = .systemFont(ofSize: 20)
-        statusLabel.textColor = .systemRed
+        statusLabel.font = .systemFont(ofSize: 18)
+        statusLabel.textColor = .label
+        statusLabel.textAlignment = .center
 
-        statusButton.titleLabel?.font = .systemFont(ofSize: 20)
+        statusButton.titleLabel?.font = .systemFont(ofSize: 18)
         statusButton.setTitleColor(.white, for: .normal)
         statusButton.layer.cornerRadius = 10
         statusButton.addTarget(self, action: #selector(statusButtonTapped), for: .touchUpInside)
+        
+        // Set initial button background color based on isOnline state
+        updateStatusLabel()
 
-        navigateButton.setTitle("Followings and Followers", for: .normal)
+        navigateButton.setTitle("View Followings & Followers", for: .normal)
+        navigateButton.titleLabel?.font = .systemFont(ofSize: 18)
         navigateButton.addTarget(self, action: #selector(navigateToDetailView), for: .touchUpInside)
-       
 
         view.addSubview(profileImageView)
         view.addSubview(nameLabel)
@@ -89,7 +91,6 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         view.addSubview(statusButton)
         view.addSubview(navigateButton)
         
-
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         bioTextField.translatesAutoresizingMaskIntoConstraints = false
@@ -98,32 +99,31 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
         navigateButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            profileImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30),
             profileImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            profileImageView.widthAnchor.constraint(equalToConstant: 80),
-            profileImageView.heightAnchor.constraint(equalToConstant: 80),
+            profileImageView.widthAnchor.constraint(equalToConstant: 100),
+            profileImageView.heightAnchor.constraint(equalToConstant: 100),
 
-            nameLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 10),
+            nameLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 15),
             nameLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            bioTextField.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 20),
-            bioTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            bioTextField.widthAnchor.constraint(equalToConstant: 300),
+            bioTextField.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 15),
+            bioTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            bioTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             bioTextField.heightAnchor.constraint(equalToConstant: 40),
 
-            statusLabel.topAnchor.constraint(equalTo: bioTextField.bottomAnchor, constant: 20),
+            statusLabel.topAnchor.constraint(equalTo: bioTextField.bottomAnchor, constant: 15),
             statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            statusButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 10),
+            statusButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 15),
             statusButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             statusButton.widthAnchor.constraint(equalToConstant: 200),
             statusButton.heightAnchor.constraint(equalToConstant: 44),
 
-            navigateButton.topAnchor.constraint(equalTo: statusButton.bottomAnchor, constant: 20),
+            navigateButton.topAnchor.constraint(equalTo: statusButton.bottomAnchor, constant: 30),
             navigateButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             navigateButton.widthAnchor.constraint(equalToConstant: 200),
-            navigateButton.heightAnchor.constraint(equalToConstant: 65), // Adjust height as needed
-            
+            navigateButton.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
 
@@ -153,14 +153,13 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
     private func updateStatusLabel() {
         statusLabel.text = isOnline ? "Ready To Cook!" : "Offline"
         statusButton.setTitle(isOnline ? "Offline" : "Ready To Cook!", for: .normal)
-        statusButton.backgroundColor = isOnline ? .blue : .red
+        statusButton.backgroundColor = isOnline ? .systemBlue : .systemRed
     }
 
     @objc private func navigateToDetailView() {
         let detailViewController = DetailViewController()
         navigationController?.pushViewController(detailViewController, animated: true)
     }
-    
 
     func saveProfileDataToFirestore() {
         guard let userId = Auth.auth().currentUser?.uid else { return }
@@ -169,7 +168,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
             "username": username ?? "",
             "bio": bioInput,
             "isOnline": isOnline,
-            "profileImageURL": viewModel.profileImageURL ?? "" // Save the URL of the profile image
+            "profileImageURL": viewModel.profileImageURL ?? ""
         ]
         userRef.setData(profileData, merge: true) { error in
             if let error = error {
@@ -191,7 +190,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate {
                 self?.isOnline = data?["isOnline"] as? Bool ?? false
                 if let profileImageURL = data?["profileImageURL"] as? String {
                     self?.viewModel.loadProfileImage(from: profileImageURL)
-                    self?.viewModel.profileImageURL = profileImageURL // Update the view model's profileImageURL
+                    self?.viewModel.profileImageURL = profileImageURL
                 }
                 DispatchQueue.main.async {
                     self?.nameLabel.text = self?.username
@@ -214,7 +213,7 @@ extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationCo
 
         if let image = info[.originalImage] as? UIImage {
             profileImageView.image = image
-            viewModel.saveProfileImage(image: image) // Save the image using the view model
+            viewModel.saveProfileImage(image: image)
         }
     }
 

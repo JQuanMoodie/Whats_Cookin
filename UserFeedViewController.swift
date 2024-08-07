@@ -35,73 +35,74 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     private func loadUserFeed() {
-        guard let currentUserID = Auth.auth().currentUser?.uid else { return }
-        let db = Firestore.firestore()
+    guard let currentUserID = Auth.auth().currentUser?.uid else { return }
+    let db = Firestore.firestore()
+    
+    db.collection("users").document(currentUserID).collection("following").getDocuments { [weak self] snapshot, error in
+        if let error = error {
+            print("Error loading user feed: \(error.localizedDescription)")
+            return
+        }
+        guard let documents = snapshot?.documents else {
+            print("No followed users found.")
+            return
+        }
         
-        db.collection("users").document(currentUserID).collection("following").getDocuments { [weak self] snapshot, error in
-            if let error = error {
-                print("Error loading user feed: \(error.localizedDescription)")
-                return
-            }
-            guard let documents = snapshot?.documents else {
-                print("No followed users found.")
-                return
-            }
-            
-            var posts: [UserPost] = []
-            let dispatchGroup = DispatchGroup()
-            
-            for document in documents {
-                let followedUserID = document.documentID
-                dispatchGroup.enter()
-                db.collection("users").document(followedUserID).collection("posts").order(by: "timestamp", descending: true).getDocuments { (postSnapshot, postError) in
-                    if let postError = postError {
-                        print("Error loading posts: \(postError.localizedDescription)")
-                        dispatchGroup.leave()
-                        return
-                    }
-                    guard let postDocuments = postSnapshot?.documents else {
-                        print("No posts found for user \(followedUserID).")
-                        dispatchGroup.leave()
-                        return
-                    }
-                    let userPosts = postDocuments.compactMap { postDocument -> UserPost? in
-                        let data = postDocument.data()
-                        guard let timestamp = data["timestamp"] as? Timestamp else { return nil }
-                        let postID = postDocument.documentID
-                        let userHasLiked = (data["likedUsers"] as? [String] ?? []).contains(currentUserID)
-                        
-                        return UserPost(
-                            postID: postID,
-                            authorID: followedUserID,
-                            authorUsername: data["authorUsername"] as? String ?? "Unknown",
-                            title: data["title"] as? String,
-                            image: data["image"] as? String,
-                            servings: data["servings"] as? Int,
-                            readyInMinutes: data["readyInMinutes"] as? Int,
-                            instructions: data["instructions"] as? String,
-                            content: data["content"] as? String,
-                            timestamp: timestamp,
-                            originalAuthorID: data["originalAuthorID"] as? String,
-                            originalAuthorUsername: data["originalAuthorUsername"] as? String,
-                            isRepost: data["isRepost"] as? Bool ?? false,
-                            likesCount: data["likesCount"] as? Int ?? 0,
-                            likedUsers: data["likedUsers"] as? [String] ?? [],
-                            userHasLiked: userHasLiked
-                        )
-                    }
-                    
-                    posts.append(contentsOf: userPosts)
+        var posts: [UserPost] = []
+        let dispatchGroup = DispatchGroup()
+        
+        for document in documents {
+            let followedUserID = document.documentID
+            dispatchGroup.enter()
+            db.collection("users").document(followedUserID).collection("posts").order(by: "timestamp", descending: true).getDocuments { (postSnapshot, postError) in
+                if let postError = postError {
+                    print("Error loading posts: \(postError.localizedDescription)")
                     dispatchGroup.leave()
+                    return
                 }
-            }
-            
-            dispatchGroup.notify(queue: .main) {
-                self?.posts = posts.sorted(by: { $0.timestamp.dateValue() > $1.timestamp.dateValue() })
-                self?.tableView.reloadData()
+                guard let postDocuments = postSnapshot?.documents else {
+                    print("No posts found for user \(followedUserID).")
+                    dispatchGroup.leave()
+                    return
+                }
+                let userPosts = postDocuments.compactMap { postDocument -> UserPost? in
+                    let data = postDocument.data()
+                    guard let timestamp = data["timestamp"] as? Timestamp else { return nil }
+                    let postID = postDocument.documentID
+                    let userHasLiked = (data["likedUsers"] as? [String] ?? []).contains(currentUserID)
+                    
+                    return UserPost(
+                        postID: postID,
+                        authorID: followedUserID,
+                        authorUsername: data["authorUsername"] as? String ?? "Unknown",
+                        title: data["title"] as? String,
+                        image: data["image"] as? String,
+                        servings: data["servings"] as? Int,
+                        readyInMinutes: data["readyInMinutes"] as? Int,
+                        instructions: data["instructions"] as? String,
+                        content: data["content"] as? String,
+                        timestamp: timestamp,
+                        originalAuthorID: data["originalAuthorID"] as? String,
+                        originalAuthorUsername: data["originalAuthorUsername"] as? String,
+                        isRepost: data["isRepost"] as? Bool ?? false,
+                        likesCount: data["likesCount"] as? Int ?? 0,
+                        likedUsers: data["likedUsers"] as? [String] ?? [],
+                        userHasLiked: userHasLiked
+                    )
+                }
+                
+                posts.append(contentsOf: userPosts)
+                dispatchGroup.leave()
             }
         }
+        
+        dispatchGroup.notify(queue: .main) {
+            self?.posts = posts.sorted(by: { $0.timestamp.dateValue() > $1.timestamp.dateValue() })
+            self?.tableView.reloadData()
+        }
     }
+}
+
     
     private func repostPost(_ post: UserPost) {
         guard let currentUserID = Auth.auth().currentUser?.uid else { return }

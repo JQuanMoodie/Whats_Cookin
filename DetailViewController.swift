@@ -21,7 +21,7 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemGray
+        view.backgroundColor = .systemBackground
         setupViews()
         searchTextField.addTarget(self, action: #selector(searchTextFieldDidChange(_:)), for: .editingChanged)
         loadUserData()
@@ -30,8 +30,8 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
     private func setupViews() {
         followersLabel.text = "Followers: 0"
         followingLabel.text = "Following: 0"
-        followingLabel.textColor = .label
         followersLabel.textColor = .label
+        followingLabel.textColor = .label
         
         searchTextField.placeholder = "Search for users"
         searchTextField.borderStyle = .roundedRect
@@ -69,7 +69,7 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
             followersLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             followersLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             
-            followingLabel.topAnchor.constraint(equalTo: followersLabel.bottomAnchor, constant: 20),
+            followingLabel.topAnchor.constraint(equalTo: followersLabel.bottomAnchor, constant: 10),
             followingLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             
             searchTextField.topAnchor.constraint(equalTo: followingLabel.bottomAnchor, constant: 20),
@@ -89,7 +89,7 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
         ])
     }
     
-     private func loadUserData() {
+    private func loadUserData() {
         guard let currentUserID = Auth.auth().currentUser?.uid else { return }
 
         let db = Firestore.firestore()
@@ -151,17 +151,16 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
         return cell
     }
     
-   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    selectedUser = searchResults[indexPath.row]
-    guard let user = selectedUser else { return }
-    
-    isUserFollowing(userID: user.uid) { [weak self] isFollowing in
-        guard let self = self else { return }
-        let actionTitle = isFollowing ? "Unfollow" : "Follow"
-        self.presentFollowUnfollowAlert(user: user, actionTitle: actionTitle)
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        selectedUser = searchResults[indexPath.row]
+        guard let user = selectedUser else { return }
+        
+        isUserFollowing(userID: user.uid) { [weak self] isFollowing in
+            guard let self = self else { return }
+            let actionTitle = isFollowing ? "Unfollow" : "Follow"
+            self.presentFollowUnfollowAlert(user: user, actionTitle: actionTitle)
+        }
     }
-}
-
     
     @objc private func handleFeedButtonTapped() {
         let feedVC = FeedViewController()
@@ -233,43 +232,41 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
         }
     }
     
-    
-private func isUserFollowing(userID: String, completion: @escaping (Bool) -> Void) {
-    guard let currentUserID = Auth.auth().currentUser?.uid else {
-        completion(false)
-        return
-    }
-    let db = Firestore.firestore()
-    let followingRef = db.collection("users").document(currentUserID).collection("following").document(userID)
-    
-    followingRef.getDocument { (document, error) in
-        if let error = error {
-            print("Error checking follow status: \(error.localizedDescription)")
+    private func isUserFollowing(userID: String, completion: @escaping (Bool) -> Void) {
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
             completion(false)
             return
         }
-        completion(document?.exists ?? false)
+        
+        let db = Firestore.firestore()
+        db.collection("users").document(currentUserID).collection("following").document(userID).getDocument { (document, error) in
+            if let document = document, document.exists {
+                completion(true)
+            } else {
+                completion(false)
+            }
+        }
     }
 }
-}
+
 
 struct UserPost: Identifiable {
-    let postID: String
+     let postID: String
     let authorID: String
-    let authorUsername: String
+    let authorUsername: String?
     let title: String?
     let image: String?
     let servings: Int?
     let readyInMinutes: Int?
     let instructions: String?
-    let content: String? // For text-based posts
+    let content: String?
     let timestamp: Timestamp
     let originalAuthorID: String?
     let originalAuthorUsername: String?
     let isRepost: Bool
     var likesCount: Int
-    var likedUsers: [String] // Array of user IDs who liked the post
-    var userHasLiked: Bool // Added property to track if the current user has liked the post
+    var likedUsers: [String]
+    var userHasLiked: Bool
     var id: String { postID }
 }
 

@@ -47,18 +47,35 @@ class PostViewController: UIViewController {
     }
 
    @objc private func handlePostButtonTapped() {
-        guard let content = postTextField.text, !content.isEmpty, let currentUserID = Auth.auth().currentUser?.uid else {
-            showAlert(message: "Post content is empty or user not logged in.")
+    guard let content = postTextField.text, !content.isEmpty,
+          let currentUserID = Auth.auth().currentUser?.uid else {
+        showAlert(message: "Post content is empty or user not logged in.")
+        return
+    }
+
+    let db = Firestore.firestore()
+    let userRef = db.collection("users").document(currentUserID)
+    
+    userRef.getDocument { [weak self] (document, error) in
+        if let error = error {
+            self?.showAlert(message: "Error fetching user data: \(error.localizedDescription)")
+            return
+        }
+        
+        guard let document = document, document.exists,
+              let userData = document.data(),
+              let username = userData["username"] as? String else {
+            self?.showAlert(message: "Error fetching username.")
             return
         }
 
-        let db = Firestore.firestore()
         let newPostRef = db.collection("users").document(currentUserID).collection("posts").document()
         let postData: [String: Any] = [
             "content": content,
             "timestamp": Timestamp(),
             "likesCount": 0, // Initialize likesCount to 0
-            "likedUsers": [] // Initialize likedUsers as an empty array
+            "likedUsers": [], // Initialize likedUsers as an empty array
+            "authorUsername": username // Add the username here
         ]
 
         newPostRef.setData(postData) { [weak self] error in
@@ -72,6 +89,7 @@ class PostViewController: UIViewController {
             }
         }
     }
+}
 
     private func showAlert(message: String, completion: (() -> Void)? = nil) {
         let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)

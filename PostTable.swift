@@ -5,17 +5,78 @@
 //  Created by Jevon Williams on 7/27/24.
 //
 import UIKit
+import FirebaseFirestore
 
 class PostTableViewCell: UITableViewCell {
-
-    let usernameLabel = UILabel()
-    let timestampLabel = UILabel()
-    let titleLabel = UILabel()
-    let recipeImageView = UIImageView()
-    let servingsLabel = UILabel()
-    let readyInMinutesLabel = UILabel()
-    let instructionsTextView = UITextView()
-    let contentTextView = UITextView()
+    
+    let usernameLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 16)
+        return label
+    }()
+    
+    let timestampLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 12)
+        label.textColor = .gray
+        return label
+    }()
+    
+    let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 16)
+        label.numberOfLines = 0
+        return label
+    }()
+    
+    let recipeImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 10
+        imageView.backgroundColor = .lightGray
+        return imageView
+    }()
+    
+    let servingsLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.textColor = .darkGray
+        return label
+    }()
+    
+    let readyInMinutesLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.textColor = .darkGray
+        return label
+    }()
+    
+    let instructionsTextView: UITextView = {
+        let textView = UITextView()
+        textView.font = UIFont.systemFont(ofSize: 14)
+        textView.isScrollEnabled = false
+        textView.isEditable = false
+        textView.backgroundColor = .clear
+        return textView
+    }()
+    
+    let contentTextView: UITextView = {
+        let textView = UITextView()
+        textView.font = UIFont.systemFont(ofSize: 14)
+        textView.isScrollEnabled = false
+        textView.isEditable = false
+        textView.backgroundColor = .clear
+        return textView
+    }()
+    
+    let buttonStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.distribution = .fillEqually
+        stackView.spacing = 8
+        return stackView
+    }()
     
     let likeButton: UIButton = {
         let button = UIButton(type: .system)
@@ -31,29 +92,31 @@ class PostTableViewCell: UITableViewCell {
         return button
     }()
     
-    let likesCountLabel = UILabel()
-    
-    var repostAction: (() -> Void)?
-    var deleteAction: (() -> Void)?
-    var likeAction: (() -> Void)?
-    var unlikeAction: (() -> Void)?
-
-    private let repostButton: UIButton = {
+    let repostButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Repost", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
-    private let deleteButton: UIButton = {
+    let deleteButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Delete", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
-    private var doubleTapGestureRecognizer: UITapGestureRecognizer?
-
+    let likesCountLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 14)
+        return label
+    }()
+    
+    var repostAction: (() -> Void)?
+    var deleteAction: (() -> Void)?
+    var likeAction: (() -> Void)?
+    var unlikeAction: (() -> Void)?
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
@@ -65,35 +128,30 @@ class PostTableViewCell: UITableViewCell {
         contentView.addSubview(readyInMinutesLabel)
         contentView.addSubview(instructionsTextView)
         contentView.addSubview(contentTextView)
-        contentView.addSubview(likeButton)
-        contentView.addSubview(unlikeButton)
+        contentView.addSubview(buttonStackView)
+        buttonStackView.addArrangedSubview(likeButton)
+        buttonStackView.addArrangedSubview(unlikeButton)
+        buttonStackView.addArrangedSubview(repostButton)
+        buttonStackView.addArrangedSubview(deleteButton)
         contentView.addSubview(likesCountLabel)
-        contentView.addSubview(repostButton)
-        contentView.addSubview(deleteButton)
         
         setupConstraints()
         
-        repostButton.addTarget(self, action: #selector(repostButtonTapped), for: .touchUpInside)
-        deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
         likeButton.addTarget(self, action: #selector(likeButtonTapped), for: .touchUpInside)
         unlikeButton.addTarget(self, action: #selector(unlikeButtonTapped), for: .touchUpInside)
-        
-        // Configure double tap gesture recognizer for the unlike button
-        doubleTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(unlikeButtonDoubleTapped))
-        doubleTapGestureRecognizer?.numberOfTapsRequired = 2
-        unlikeButton.addGestureRecognizer(doubleTapGestureRecognizer!)
+        repostButton.addTarget(self, action: #selector(repostButtonTapped), for: .touchUpInside)
+        deleteButton.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
         
         // Set default button states
         likeButton.isHidden = false
         unlikeButton.isHidden = true
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     private func setupConstraints() {
-        // Example layout constraints - adjust as needed
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         timestampLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -102,12 +160,9 @@ class PostTableViewCell: UITableViewCell {
         readyInMinutesLabel.translatesAutoresizingMaskIntoConstraints = false
         instructionsTextView.translatesAutoresizingMaskIntoConstraints = false
         contentTextView.translatesAutoresizingMaskIntoConstraints = false
-        likeButton.translatesAutoresizingMaskIntoConstraints = false
-        unlikeButton.translatesAutoresizingMaskIntoConstraints = false
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
         likesCountLabel.translatesAutoresizingMaskIntoConstraints = false
-        repostButton.translatesAutoresizingMaskIntoConstraints = false
-        deleteButton.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             usernameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             usernameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -116,51 +171,45 @@ class PostTableViewCell: UITableViewCell {
             timestampLabel.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 4),
             timestampLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             timestampLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-
+            
             titleLabel.topAnchor.constraint(equalTo: timestampLabel.bottomAnchor, constant: 8),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-
+            
             recipeImageView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             recipeImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             recipeImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             recipeImageView.heightAnchor.constraint(equalToConstant: 200),
-
+            
             servingsLabel.topAnchor.constraint(equalTo: recipeImageView.bottomAnchor, constant: 8),
             servingsLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             
             readyInMinutesLabel.topAnchor.constraint(equalTo: servingsLabel.bottomAnchor, constant: 4),
             readyInMinutesLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-
+            
             instructionsTextView.topAnchor.constraint(equalTo: readyInMinutesLabel.bottomAnchor, constant: 8),
             instructionsTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             instructionsTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             instructionsTextView.heightAnchor.constraint(equalToConstant: 80),
-
+            
             contentTextView.topAnchor.constraint(equalTo: instructionsTextView.bottomAnchor, constant: 8),
             contentTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             contentTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             contentTextView.heightAnchor.constraint(equalToConstant: 80),
-
-            likeButton.topAnchor.constraint(equalTo: contentTextView.bottomAnchor, constant: 8),
-            likeButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-
-            unlikeButton.topAnchor.constraint(equalTo: contentTextView.bottomAnchor, constant: 8),
-            unlikeButton.leadingAnchor.constraint(equalTo: likeButton.trailingAnchor, constant: 8),
-
-            likesCountLabel.centerYAnchor.constraint(equalTo: likeButton.centerYAnchor),
-            likesCountLabel.leadingAnchor.constraint(equalTo: unlikeButton.trailingAnchor, constant: 8),
+            
+            buttonStackView.topAnchor.constraint(equalTo: contentTextView.bottomAnchor, constant: 8),
+            buttonStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            buttonStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            
+            likesCountLabel.centerYAnchor.constraint(equalTo: buttonStackView.centerYAnchor),
             likesCountLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-
-            repostButton.topAnchor.constraint(equalTo: likeButton.bottomAnchor, constant: 8),
-            repostButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            repostButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
-
-            deleteButton.topAnchor.constraint(equalTo: likeButton.bottomAnchor, constant: 8),
-            deleteButton.leadingAnchor.constraint(equalTo: repostButton.trailingAnchor, constant: 16),
-            deleteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
-            deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
+            
+            contentView.bottomAnchor.constraint(equalTo: buttonStackView.bottomAnchor, constant: 8)
         ])
+    }
+    
+    func updateLikesCount(_ count: Int) {
+        likesCountLabel.text = "\(count) likes"
     }
     
     @objc private func repostButtonTapped() {
@@ -178,47 +227,55 @@ class PostTableViewCell: UITableViewCell {
     @objc private func unlikeButtonTapped() {
         unlikeAction?()
     }
+    
+func configure(with post: UserPost) {
+    print("Post ID: \(post.postID)")
+    print("Author Username: \(post.authorUsername ?? "nil")")
+    print("Original Author Username: \(post.originalAuthorUsername ?? "nil")")
+    
+    // Check if the post is a repost
+    if post.isRepost {
+        // Display the original author's username
+        usernameLabel.text = "Test Username" // Check if this updates the label correctly
 
-    @objc private func unlikeButtonDoubleTapped() {
-        unlikeAction?()
+    } else {
+        // Display the current author's username
+        usernameLabel.text = "Test Username" // Check if this updates the label correctly
+
     }
 
-    func updateLikesCount(_ count: Int) {
-        likesCountLabel.text = "\(count) Likes"
+    // Convert Timestamp to Date if needed
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateStyle = .short
+    dateFormatter.timeStyle = .short
+
+    if let timestamp = post.timestamp as? Timestamp {
+        let date = timestamp.dateValue()
+        timestampLabel.text = dateFormatter.string(from: date)
+    } else {
+        timestampLabel.text = "Unknown date"
     }
     
-    func configure(with post: UserPost) {
-        // Update the UI with post details
-        usernameLabel.text = post.isRepost ? post.originalAuthorUsername : post.authorUsername
-        timestampLabel.text = DateFormatter.localizedString(from: post.timestamp.dateValue(), dateStyle: .short, timeStyle: .short)
-        
-        titleLabel.text = post.title
-        titleLabel.isHidden = post.title == nil
-        
-        if let imageUrl = post.image, let url = URL(string: imageUrl) {
-            recipeImageView.load(url: url)
-            recipeImageView.isHidden = false
-        } else {
-            recipeImageView.isHidden = true
-        }
-        
-        servingsLabel.text = post.servings != nil ? "Servings: \(post.servings!)" : nil
-        servingsLabel.isHidden = post.servings == nil
-        
-        readyInMinutesLabel.text = post.readyInMinutes != nil ? "Ready in: \(post.readyInMinutes!) minutes" : nil
-        readyInMinutesLabel.isHidden = post.readyInMinutes == nil
-        
-        instructionsTextView.text = post.instructions
-        instructionsTextView.isHidden = post.instructions == nil
-        
-        contentTextView.text = post.content
-        contentTextView.isHidden = post.content == nil
-        
-        updateLikesCount(post.likesCount)
-        
-        // Update button visibility based on whether the post is liked
-        likeButton.isHidden = post.userHasLiked
-        unlikeButton.isHidden = !post.userHasLiked
+    titleLabel.text = post.title ?? "No title"
+    
+    // Check if image is a URL string
+    if let imageUrlString = post.image, let url = URL(string: imageUrlString) {
+        recipeImageView.load(url: url) // Assuming you have an extension to load images from URLs
+    } else {
+        recipeImageView.image = nil // Or a placeholder image
     }
+    
+    servingsLabel.text = post.servings != nil ? "Servings: \(post.servings!)" : "No servings info"
+    readyInMinutesLabel.text = post.readyInMinutes != nil ? "Ready in: \(post.readyInMinutes!) minutes" : "No time info"
+    instructionsTextView.text = post.instructions ?? "No instructions provided"
+    contentTextView.text = post.content ?? "No content available"
+    
+    updateLikesCount(post.likesCount)
+    
+    // Update button visibility based on post state
+    likeButton.isHidden = post.userHasLiked
+    unlikeButton.isHidden = !post.userHasLiked
 }
+}
+
 
