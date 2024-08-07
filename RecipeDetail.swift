@@ -3,7 +3,8 @@
 //  What's Cookin'
 //
 //  Created by Jevon Williams  on 7/30/24.
-// modified by Jose Vasquez on 8/6/24
+//  Edited by Jose Vasquez
+//  Edited by J'Quan Moodie
 
 import UIKit
 import FirebaseFirestore
@@ -17,7 +18,7 @@ extension NSNotification.Name {
 
 class RecipeDetailViewController: UIViewController {
     var recipe: Recipee?
-
+    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 24)
@@ -97,6 +98,8 @@ class RecipeDetailViewController: UIViewController {
         
         setupConstraints()
         setupData()
+        
+        AppData.shared.addVisited(recipe: recipe!)
         
         favoriteButton.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
         postButton.addTarget(self, action: #selector(postButtonTapped), for: .touchUpInside)
