@@ -4,6 +4,7 @@
 //
 //  Created by Raisa Methila on 7/4/24.
 //
+// Edited by Rachel WU
 import UIKit
 import FirebaseAuth
 import FirebaseFirestore
