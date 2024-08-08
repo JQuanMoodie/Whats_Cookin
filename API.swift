@@ -3,6 +3,7 @@
 //  Raisa Methila
 //  Rachel Wu
 //  Jevon Williams
+// Jose Vasquez
 
 import Foundation
 import FirebaseFirestore
@@ -333,6 +334,37 @@ class RecipeService {
     // Fetch random drink recipes from Spoonacular
     func fetchRandomDrinkRecipes(completion: @escaping (Result<[Recipee], APIError>) -> Void) {
         let urlString = "\(baseURL)random?number=2&tags=drink&apiKey=\(apiKey)"
+        
+        guard let url = URL(string: urlString) else {
+            completion(.failure(APIError.invalidURL))
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(.failure(APIError.networkError(error)))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(APIError.noData))
+                return
+            }
+            
+            do {
+                let response = try JSONDecoder().decode(RecipeResponse.self, from: data)
+                completion(.success(response.recipes))
+            } catch {
+                completion(.failure(APIError.decodingError(error)))
+            }
+        }
+        
+        task.resume()
+    }
+
+    // Fetch random snack recipes from Spoonacular
+    func fetchRandomSnackRecipes(completion: @escaping (Result<[Recipee], APIError>) -> Void) {
+        let urlString = "\(baseURL)random?number=2&tags=snack&apiKey=\(apiKey)"
         
         guard let url = URL(string: urlString) else {
             completion(.failure(APIError.invalidURL))
