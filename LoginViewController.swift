@@ -31,6 +31,11 @@ class LoginViewController: UIViewController {
         textField.backgroundColor = UIColor(red: 1.0, green: 0.8, blue: 0.7, alpha: 1.0) // Peachy color
         textField.textColor = .black // Set text color to black 
         textField.translatesAutoresizingMaskIntoConstraints = false
+
+        //placeholder text color
+        let placeholderText = NSAttributedString(string: "Email", attributes: [NSAttributedString.Key.foregroundColor: UIColor.black])
+        textField.attributedPlaceholder = placeholderText
+
         return textField
     }()
 
@@ -42,6 +47,11 @@ class LoginViewController: UIViewController {
         textField.backgroundColor = UIColor(red: 1.0, green: 0.8, blue: 0.7, alpha: 1.0) // Peachy color
         textField.textColor = .black // Set text color to black
         textField.translatesAutoresizingMaskIntoConstraints = false
+
+        //placeholder text color
+        let placeholderText = NSAttributedString(string: "Password", attributes: [NSAttributedString.Key.foregroundColor: UIColor.black])
+        textField.attributedPlaceholder = placeholderText
+
         return textField
     }()
 
