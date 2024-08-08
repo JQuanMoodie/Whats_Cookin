@@ -18,7 +18,7 @@ class LoginViewController: UIViewController {
 
     //background image 
     private let backgroundImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "loginpage.png"))
+        let imageView = UIImageView(image: UIImage(named: "loginpage3.png"))
         imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -29,6 +29,7 @@ class LoginViewController: UIViewController {
         textField.placeholder = "Email"
         textField.borderStyle = .roundedRect
         textField.backgroundColor = UIColor(red: 1.0, green: 0.8, blue: 0.7, alpha: 1.0) // Peachy color
+        textField.textColor = .black // Set text color to black 
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
@@ -39,6 +40,7 @@ class LoginViewController: UIViewController {
         textField.isSecureTextEntry = true
         textField.borderStyle = .roundedRect
         textField.backgroundColor = UIColor(red: 1.0, green: 0.8, blue: 0.7, alpha: 1.0) // Peachy color
+        textField.textColor = .black // Set text color to black
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
