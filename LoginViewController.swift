@@ -18,7 +18,7 @@ class LoginViewController: UIViewController {
 
     //background image 
     private let backgroundImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "loginpage2.png"))
+        let imageView = UIImageView(image: UIImage(named: "loginpage.png"))
         imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -48,8 +48,8 @@ class LoginViewController: UIViewController {
         button.setTitle("Login", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         //login button white
-        button.backgroundColor = .white
-        button.setTitleColor(.black, for: .normal)
+        //button.backgroundColor = .white
+        button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 5
 
         button.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
@@ -61,8 +61,8 @@ class LoginViewController: UIViewController {
         button.setTitle("Sign Up", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         //sign up button white
-        button.backgroundColor = .white
-        button.setTitleColor(.black, for: .normal)
+        //button.backgroundColor = .white
+        button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 5
 
         button.addTarget(self, action: #selector(signUpButtonTapped), for: .touchUpInside)
@@ -95,13 +95,17 @@ class LoginViewController: UIViewController {
 
             usernameTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             usernameTextField.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -50),
-            usernameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            usernameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            //width
+            usernameTextField.widthAnchor.constraint(equalToConstant: 250),
+            //usernameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            //usernameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 
             passwordTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             passwordTextField.topAnchor.constraint(equalTo: usernameTextField.bottomAnchor, constant: 20),
-            passwordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            //width
+            passwordTextField.widthAnchor.constraint(equalToConstant: 250),
+            //passwordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            //passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 
             loginButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loginButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 20),
