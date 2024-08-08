@@ -17,7 +17,7 @@ class DrinkViewController: UIViewController, UICollectionViewDataSource, UIColle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.systemBlue // Drink-themed background color
+        view.backgroundColor = UIColor(red: 0.0, green: 0.0, blue: 0.5, alpha: 1.0) // Darker blue background color
 
         setupNavigationBar()
         setupTitleLabel()
