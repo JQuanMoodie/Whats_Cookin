@@ -91,27 +91,21 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
     
     private func loadUserData() {
         guard let currentUserID = Auth.auth().currentUser?.uid else { return }
-
+        
         let db = Firestore.firestore()
         
         // Load followers count
-        db.collection("users").document(currentUserID).collection("followers").getDocuments { [weak self] snapshot, error in
+        db.collection("users").document(currentUserID).getDocument { [weak self] document, error in
             if let error = error {
-                print("Error fetching followers: \(error.localizedDescription)")
+                print("Error fetching user data: \(error.localizedDescription)")
                 return
             }
-            let followersCount = snapshot?.documents.count ?? 0
-            self?.followersLabel.text = "Followers: \(followersCount)"
-        }
-
-        // Load following count
-        db.collection("users").document(currentUserID).collection("following").getDocuments { [weak self] snapshot, error in
-            if let error = error {
-                print("Error fetching following: \(error.localizedDescription)")
-                return
+            if let document = document, document.exists, let data = document.data() {
+                let followersCount = data["followersCount"] as? Int ?? 0
+                let followingCount = data["followingCount"] as? Int ?? 0
+                self?.followersLabel.text = "Followers: \(followersCount)"
+                self?.followingLabel.text = "Following: \(followingCount)"
             }
-            let followingCount = snapshot?.documents.count ?? 0
-            self?.followingLabel.text = "Following: \(followingCount)"
         }
     }
     
@@ -186,28 +180,46 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
         present(alert, animated: true, completion: nil)
     }
     
-    private func followUser(currentUserID: String, userIDToFollow: String) {
-        let db = Firestore.firestore()
-        
-        // Add the userIDToFollow to the following subcollection of currentUserID
-        db.collection("users").document(currentUserID).collection("following").document(userIDToFollow).setData([:]) { error in
-            if let error = error {
-                print("Error following user: \(error.localizedDescription)")
-            } else {
-                print("User followed successfully.")
-                self.loadUserData() // Refresh user data
-            }
-        }
-        
-        // Add the currentUserID to the followers subcollection of userIDToFollow
-        db.collection("users").document(userIDToFollow).collection("followers").document(currentUserID).setData([:]) { error in
-            if let error = error {
-                print("Error updating followers: \(error.localizedDescription)")
-            } else {
-                print("Followers updated successfully.")
+  private func followUser(currentUserID: String, userIDToFollow: String) {
+    let db = Firestore.firestore()
+    
+    // Add the userIDToFollow to the following subcollection of currentUserID
+    db.collection("users").document(currentUserID).collection("following").document(userIDToFollow).setData([:]) { error in
+        if let error = error {
+            print("Error following user: \(error.localizedDescription)")
+        } else {
+            print("User followed successfully.")
+            // Increment the following count
+            db.collection("users").document(currentUserID).updateData([
+                "followingCount": FieldValue.increment(Int64(1))
+            ]) { error in
+                if let error = error {
+                    print("Error updating following count: \(error.localizedDescription)")
+                } else {
+                    self.loadUserData() // Refresh user data
+                }
             }
         }
     }
+    
+    // Add the currentUserID to the followers subcollection of userIDToFollow
+    db.collection("users").document(userIDToFollow).collection("followers").document(currentUserID).setData([:]) { error in
+        if let error = error {
+            print("Error updating followers: \(error.localizedDescription)")
+        } else {
+            print("Followers updated successfully.")
+            // Increment the followers count
+            db.collection("users").document(userIDToFollow).updateData([
+                "followersCount": FieldValue.increment(Int64(1))
+            ]) { error in
+                if let error = error {
+                    print("Error updating followers count: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+}
+
     
     private func unfollowUser(currentUserID: String, userIDToUnfollow: String) {
         let db = Firestore.firestore()
@@ -218,6 +230,10 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
                 print("Error unfollowing user: \(error.localizedDescription)")
             } else {
                 print("User unfollowed successfully.")
+                // Decrement the following count
+                db.collection("users").document(currentUserID).updateData([
+                    "followingCount": FieldValue.increment(Int64(-1))
+                ])
                 self.loadUserData() // Refresh user data
             }
         }
@@ -228,26 +244,29 @@ class DetailViewController: UIViewController, UITextFieldDelegate, UITableViewDa
                 print("Error updating followers: \(error.localizedDescription)")
             } else {
                 print("Followers updated successfully.")
+                // Decrement the followers count
+                db.collection("users").document(userIDToUnfollow).updateData([
+                    "followersCount": FieldValue.increment(Int64(-1))
+                ])
             }
         }
     }
     
     private func isUserFollowing(userID: String, completion: @escaping (Bool) -> Void) {
-        guard let currentUserID = Auth.auth().currentUser?.uid else {
-            completion(false)
-            return
-        }
-        
+        guard let currentUserID = Auth.auth().currentUser?.uid else { completion(false); return }
         let db = Firestore.firestore()
-        db.collection("users").document(currentUserID).collection("following").document(userID).getDocument { (document, error) in
-            if let document = document, document.exists {
-                completion(true)
-            } else {
+        let docRef = db.collection("users").document(currentUserID).collection("following").document(userID)
+        docRef.getDocument { document, error in
+            if let error = error {
+                print("Error checking follow status: \(error.localizedDescription)")
                 completion(false)
+            } else {
+                completion(document?.exists ?? false)
             }
         }
     }
 }
+
 
 
 struct UserPost: Identifiable {
