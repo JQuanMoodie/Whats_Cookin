@@ -141,7 +141,7 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-   private func likePost(_ post: UserPost) {
+ private func likePost(_ post: UserPost) {
     guard let currentUserID = Auth.auth().currentUser?.uid else { return }
     let db = Firestore.firestore()
     let postRef = db.collection("users").document(post.authorID).collection("posts").document(post.postID)
@@ -180,6 +180,7 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
 }
+
 
     
 private func unlikePost(_ post: UserPost) {
