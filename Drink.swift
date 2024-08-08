@@ -5,8 +5,6 @@
 //  Created by Raisa Methila on 8/7/24.
 //
 
-import Foundation
-
 import UIKit
 
 class DrinkViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -21,10 +19,31 @@ class DrinkViewController: UIViewController, UICollectionViewDataSource, UIColle
         super.viewDidLoad()
         view.backgroundColor = UIColor.systemBlue // Drink-themed background color
 
+        setupNavigationBar()
         setupTitleLabel()
         setupDescriptionLabel()
         setupCollectionView()
         fetchDrinkRecipes()
+    }
+
+    private func setupNavigationBar() {
+        // Ensure the navigation bar is visible
+        navigationController?.setNavigationBarHidden(false, animated: true)
+        
+        // Set the title of the view controller
+        title = "Drinks"
+        
+        // Add a back button
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            title: "Back",
+            style: .plain,
+            target: self,
+            action: #selector(backButtonTapped)
+        )
+    }
+
+    @objc private func backButtonTapped() {
+        navigationController?.popViewController(animated: true)
     }
 
     private func setupTitleLabel() {
