@@ -1,34 +1,36 @@
 //
-//  SnackViewController.swift
-//  capstoneproj
+//  Drink.swift
+//  What'sCookin
 //
-//  Created by Jose Vasquez on 08/07/24.
+//  Created by Raisa Methila on 8/7/24.
 //
+
+import Foundation
 
 import UIKit
 
-class SnackViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+class DrinkViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     private let titleLabel = UILabel()
     private let descriptionLabel = UILabel()
     private var collectionView: UICollectionView!
-    private var snackRecipes: [Recipee] = []
+    private var drinkRecipes: [Recipee] = []
     private let recipeService = RecipeService()
     private let maxRecipes = 10
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.systemPurple
+        view.backgroundColor = UIColor.systemBlue // Drink-themed background color
 
         setupTitleLabel()
         setupDescriptionLabel()
         setupCollectionView()
-        fetchSnackRecipes()
+        fetchDrinkRecipes()
     }
 
     private func setupTitleLabel() {
-        titleLabel.text = "It's Snack Time!"
+        titleLabel.text = "Refreshing Drinks!"
         titleLabel.font = UIFont.boldSystemFont(ofSize: 36)
-        titleLabel.textColor = .black
+        titleLabel.textColor = .white
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
@@ -41,9 +43,9 @@ class SnackViewController: UIViewController, UICollectionViewDataSource, UIColle
     }
 
     private func setupDescriptionLabel() {
-        descriptionLabel.text = "Enjoy a delicious snack to keep you energized!"
+        descriptionLabel.text = "Quench your thirst with our selection of refreshing drinks. Discover a variety of beverages to keep you hydrated and refreshed."
         descriptionLabel.font = UIFont.systemFont(ofSize: 18)
-        descriptionLabel.textColor = .darkGray
+        descriptionLabel.textColor = .white
         descriptionLabel.textAlignment = .center
         descriptionLabel.numberOfLines = 0
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -80,22 +82,22 @@ class SnackViewController: UIViewController, UICollectionViewDataSource, UIColle
         ])
     }
 
-    private func fetchSnackRecipes() {
+    private func fetchDrinkRecipes() {
         fetchRecipesRecursively()
     }
 
     private func fetchRecipesRecursively() {
-        guard snackRecipes.count < maxRecipes else {
+        guard drinkRecipes.count < maxRecipes else {
             DispatchQueue.main.async {
                 self.collectionView.reloadData()
             }
             return
         }
 
-        recipeService.fetchRandomSnackRecipes { [weak self] result in
+        recipeService.fetchRandomDrinkRecipes { [weak self] result in
             switch result {
             case .success(let recipes):
-                self?.snackRecipes.append(contentsOf: recipes)
+                self?.drinkRecipes.append(contentsOf: recipes)
                 DispatchQueue.main.async {
                     self?.collectionView.reloadData()
                 }
@@ -103,7 +105,7 @@ class SnackViewController: UIViewController, UICollectionViewDataSource, UIColle
                     self?.fetchRecipesRecursively()
                 }
             case .failure(let error):
-                print("Failed to fetch snack recipes: \(error)")
+                print("Failed to fetch drink recipes: \(error)")
                 DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
                     self?.fetchRecipesRecursively()
                 }
@@ -114,12 +116,12 @@ class SnackViewController: UIViewController, UICollectionViewDataSource, UIColle
     // MARK: - UICollectionViewDataSource
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return snackRecipes.count
+        return drinkRecipes.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RecipeCollectionViewCell.identifier, for: indexPath) as! RecipeCollectionViewCell
-        let recipe = snackRecipes[indexPath.item]
+        let recipe = drinkRecipes[indexPath.item]
         cell.configure(with: recipe)
         return cell
     }
@@ -132,10 +134,9 @@ class SnackViewController: UIViewController, UICollectionViewDataSource, UIColle
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedRecipe = snackRecipes[indexPath.item]
+        let selectedRecipe = drinkRecipes[indexPath.item]
         let detailVC = RecipeDetailViewController()
         detailVC.recipe = selectedRecipe
         navigationController?.pushViewController(detailVC, animated: true)
     }
 }
-

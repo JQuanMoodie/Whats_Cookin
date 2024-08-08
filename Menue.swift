@@ -1,4 +1,3 @@
-
 //
 //  File.swift
 //  What's Cookin'
@@ -6,11 +5,10 @@
 //  Created by Jose Vasquez on 7/20/24.
 //  Edited by: Raisa Methila
 
-
 import UIKit
 
 class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let channels = ["Breakfast", "Main Course", "Dinner", "Dessert", "Shopping Cart"]
+    let channels = ["Breakfast", "Main Course", "Drink", "Dessert", "Shopping Cart"]
     var tableView: UITableView!
     var dismissSidebar: (() -> Void)?
 
@@ -92,8 +90,8 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
             imageName = "sunrise.fill"
         case "Main Course":
             imageName = "sun.max.fill"
-        case "Dinner":
-            imageName = "moon.fill"
+        case "Drink":
+            imageName = "cup.and.saucer.fill"
         case "Dessert":
             imageName = "flame.fill"
         case "Shopping Cart":
@@ -125,12 +123,12 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                 let navController = UINavigationController(rootViewController: lunchVC)
                 present(navController, animated: true, completion: nil)
             }
-        } else if selectedChannel == "Dinner" {
-            let dinnerVC = DinnerViewController()
+        } else if selectedChannel == "Drink" {
+            let drinkVC = DrinkViewController()
             if let navController = navigationController {
-                navController.pushViewController(dinnerVC, animated: true)
+                navController.pushViewController(drinkVC, animated: true)
             } else {
-                let navController = UINavigationController(rootViewController: dinnerVC)
+                let navController = UINavigationController(rootViewController: drinkVC)
                 present(navController, animated: true, completion: nil)
             }
         } else if selectedChannel == "Dessert" {
