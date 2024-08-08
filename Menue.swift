@@ -8,7 +8,7 @@
 import UIKit
 
 class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let channels = ["Breakfast", "Main Course", "Drink", "Dessert", "Side Dish", "Snack", "Shopping Cart"]
+    let channels = ["Breakfast", "Main Course", "Drink", "Dessert", "Side Dish", "Appetizer", "Snack", "Shopping Cart"]
     var tableView: UITableView!
     var dismissSidebar: (() -> Void)?
 
@@ -96,6 +96,8 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
             imageName = "flame.fill"
         case "Side Dish":
             imageName = "leaf.fill"
+        case "Appetizer":
+            imageName = "appetizer" // Adjust this line with the appropriate SF Symbol if available
         case "Snack":
             imageName = "bag.fill"
         case "Shopping Cart":
@@ -149,6 +151,14 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                 navController.pushViewController(sideDishVC, animated: true)
             } else {
                 let navController = UINavigationController(rootViewController: sideDishVC)
+                present(navController, animated: true, completion: nil)
+            }
+        } else if selectedChannel == "Appetizer" {
+            let appetizerVC = AppetizerViewController()
+            if let navController = navigationController {
+                navController.pushViewController(appetizerVC, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: appetizerVC)
                 present(navController, animated: true, completion: nil)
             }
         } else if selectedChannel == "Snack" {
