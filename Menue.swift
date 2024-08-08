@@ -1,16 +1,14 @@
-
 //
 //  File.swift
 //  What's Cookin'
-//
 //  Created by Jose Vasquez on 7/20/24.
 //  Edited by: Raisa Methila
-
+//
 
 import UIKit
 
 class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let channels = ["Breakfast", "Main Course", "Dinner", "Dessert", "Shopping Cart"]
+    let channels = ["Breakfast", "Main Course", "Dinner", "Dessert", "Snack", "Shopping Cart"]
     var tableView: UITableView!
     var dismissSidebar: (() -> Void)?
 
@@ -96,6 +94,8 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
             imageName = "moon.fill"
         case "Dessert":
             imageName = "flame.fill"
+        case "Snack":
+            imageName = "bag.fill" // SF Symbol for snack
         case "Shopping Cart":
             imageName = "cart"
         default:
@@ -139,6 +139,14 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                 navController.pushViewController(dessertVC, animated: true)
             } else {
                 let navController = UINavigationController(rootViewController: dessertVC)
+                present(navController, animated: true, completion: nil)
+            }
+        } else if selectedChannel == "Snack" {
+            let snackVC = SnackViewController()
+            if let navController = navigationController {
+                navController.pushViewController(snackVC, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: snackVC)
                 present(navController, animated: true, completion: nil)
             }
         } else if selectedChannel == "Shopping Cart" {
