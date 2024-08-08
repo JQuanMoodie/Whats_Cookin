@@ -8,6 +8,7 @@
 //  Edited by J'Quan Moodie
 
 
+
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
@@ -71,7 +72,7 @@ class RecipeDetailViewController: UIViewController {
 
     private let postButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Post to Feed", for: .normal)
+        button.setTitle("Post", for: .normal)
         button.backgroundColor = UIColor.darkerColor(for: .customButton) // Use the darkerColor method
         button.setTitleColor(.black, for: .normal)
         button.layer.cornerRadius = 10
@@ -145,10 +146,33 @@ class RecipeDetailViewController: UIViewController {
         servingsLabel.textColor = .customLabel
         readyInMinutesLabel.text = "Ready in: \(recipe.readyInMinutes ?? 0) minutes"
         readyInMinutesLabel.textColor = .customLabel
-        
-        instructionsTextView.text = recipe.instructions
+
+        if let rawInstructions = recipe.instructions {
+            let cleanedInstructions = formatInstructions(rawInstructions)
+            instructionsTextView.text = cleanedInstructions
+        } else {
+            instructionsTextView.text = "No instructions available."
+        }
+
         instructionsTextView.backgroundColor = .customBackground
         instructionsTextView.textColor = .customLabel
+    }
+
+    // Add the formatInstructions function here
+    private func formatInstructions(_ rawInstructions: String) -> String {
+        // Remove HTML tags and format the instructions
+        let instructionSteps = rawInstructions
+            .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression, range: nil)
+            .components(separatedBy: "\n")
+            .filter { !$0.isEmpty }
+
+        // Format the steps with numbers
+        var formattedInstructions = ""
+        for (index, step) in instructionSteps.enumerated() {
+            formattedInstructions += "\(index + 1). \(step.trimmingCharacters(in: .whitespacesAndNewlines))\n"
+        }
+
+        return formattedInstructions.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     @objc private func favoriteButtonTapped() {
