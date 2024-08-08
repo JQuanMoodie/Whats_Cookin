@@ -7,7 +7,7 @@
 import UIKit
 
 class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let channels = ["Breakfast", "MainCourse", "Dinner", "Dessert","Shopping Cart"]
+    let channels = ["Breakfast", "Main Course", "Dinner", "Dessert","Shopping Cart"]
     var tableView: UITableView!
     var dismissSidebar: (() -> Void)?
 
@@ -87,7 +87,7 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
         switch channels[indexPath.row] {
         case "Breakfast":
             imageName = "sunrise.fill"
-        case "MainCourse":
+        case "Main Course":
             imageName = "sun.max.fill"
         case "Dinner":
             imageName = "moon.fill"
@@ -116,7 +116,7 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                     let navController = UINavigationController(rootViewController: breakfastVC)
                     present(navController, animated: true, completion: nil)
                 }
-            } else if selectedChannel == "MainCourse" {
+            } else if selectedChannel == "Main Course" {
                 let lunchVC = LunchViewController()
                 if let navController = navigationController {
                     navController.pushViewController(lunchVC, animated: true)
