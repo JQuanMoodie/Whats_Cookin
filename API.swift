@@ -1,15 +1,8 @@
-//
-//File for API integration 
-//
-//Rachel Wu
-// Edited: Jevon Williams
-
 //  File for API integration
 //  Authors:
 //  Raisa Methila
 //  Rachel Wu
 //  Jevon Williams
-
 
 import Foundation
 import FirebaseFirestore
@@ -49,10 +42,6 @@ struct Ingredient: Codable, Identifiable {
 }
 
 struct RecipeResponse: Decodable {
-    let results: [Recipee]
-}
-
-struct RandomRecipeResponse: Decodable {
     let recipes: [Recipee]
 }
 
@@ -68,42 +57,9 @@ class RecipeService {
     private let baseURL = "https://api.spoonacular.com/recipes/"
     private let db = Firestore.firestore()
     
-    func fetchRecipeDetails(for id: Int, completion: @escaping (Result<Recipee, APIError>) -> Void) {
-        let urlString = "\(baseURL)\(id)/information?apiKey=\(apiKey)"
-        
-        guard let url = URL(string: urlString) else {
-            completion(.failure(.invalidURL))
-            return
-        }
-        
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                completion(.failure(.networkError(error)))
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-                completion(.failure(.noData))
-                return
-            }
-            
-            guard let data = data else {
-                completion(.failure(.noData))
-                return
-            }
-            
-            do {
-                let recipe = try JSONDecoder().decode(Recipee.self, from: data)
-                completion(.success(recipe))
-            } catch {
-                completion(.failure(.decodingError(error)))
-            }
-        }
-        task.resume()
-    }
-
+    // Fetch recipes with query parameters
     func fetchRecipes(query: String?, includeIngredients: String?, excludeIngredients: String?, completion: @escaping (Result<[Recipee], APIError>) -> Void) {
-        var urlString = "\(baseURL)complexSearch?apiKey=\(apiKey)&number=10"
+        var urlString = "\(baseURL)complexSearch?apiKey=\(apiKey)"
         
         if let query = query {
             let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
@@ -141,40 +97,16 @@ class RecipeService {
             
             do {
                 let response = try JSONDecoder().decode(RecipeResponse.self, from: data)
-                let recipeSummaries = response.results
-                
-                let group = DispatchGroup()
-                var recipes = [Recipee]()
-                var fetchErrors = [APIError]()
-                
-                for summary in recipeSummaries {
-                    group.enter()
-                    self.fetchRecipeDetails(for: summary.id) { result in
-                        switch result {
-                        case .success(let recipe):
-                            recipes.append(recipe)
-                        case .failure(let error):
-                            fetchErrors.append(error)
-                        }
-                        group.leave()
-                    }
-                }
-                
-                group.notify(queue: .main) {
-                    if fetchErrors.isEmpty {
-                        completion(.success(recipes))
-                    } else {
-                        completion(.failure(.decodingError(fetchErrors.first!))) // Handle multiple errors differently if needed
-                    }
-                }
-                
+                let recipes = response.recipes
+                completion(.success(recipes))
             } catch {
                 completion(.failure(.decodingError(error)))
             }
         }
         task.resume()
     }
-
+    
+    // Save recipe to Firestore
     func saveRecipeToFavorites(recipe: Recipee, userId: String, completion: @escaping (Result<Void, Error>) -> Void) {
         let recipeData: [String: Any] = [
             "id": recipe.id,
@@ -203,92 +135,136 @@ class RecipeService {
             }
         }
     }
-
+    
+    // Remove recipe from Firestore
     func removeRecipe(recipeId: Int, userId: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        db.collection("users").document(userId).collection("favoriteRecipes").document("\(recipeId)").delete { error in
+        db.collection("favoriteRecipes")
+            .document("\(userId)")
+            .collection("recipes")
+            .document("\(recipeId)")
+            .delete { error in
+                if let error = error {
+                    completion(.failure(error))
+                } else {
+                    completion(.success(()))
+                }
+            }
+    }
+
+    // Fetch favorite recipes from Firestore
+    func fetchFavoriteRecipes(userId: String, completion: @escaping (Result<[Recipee], Error>) -> Void) {
+        db.collection("users").document(userId).collection("favoriteRecipes").getDocuments { snapshot, error in
             if let error = error {
                 completion(.failure(error))
             } else {
-                completion(.success(()))
-            }
-        }
-    }
-
-    func fetchFavoriteRecipes(userId: String, completion: @escaping (Result<[Recipee], Error>) -> Void) {
-    db.collection("users").document(userId).collection("favoriteRecipes").getDocuments { (querySnapshot, error) in
-        if let error = error {
-            completion(.failure(error))
-            return
-        }
-
-        var favoriteRecipes = [Recipee]()
-
-        let dispatchGroup = DispatchGroup()
-
-        for document in querySnapshot!.documents {
-            if let data = document.data() as? [String: Any],
-               let id = data["id"] as? Int {
-                dispatchGroup.enter()
-                self.fetchRecipeDetails(for: id) { result in
-                    switch result {
-                    case .success(let recipe):
-                        favoriteRecipes.append(recipe)
-                    case .failure(let error):
-                        print("Error fetching recipe details: \(error)")
+                let recipes = snapshot?.documents.compactMap { document -> Recipee? in
+                    let data = document.data()
+                    guard
+                        let id = data["id"] as? Int,
+                        let title = data["title"] as? String,
+                        let image = data["image"] as? String,
+                        let imageType = data["imageType"] as? String
+                    else {
+                        return nil
                     }
-                    dispatchGroup.leave()
-                }
+                    
+                    let servings = data["servings"] as? Int
+                    let readyInMinutes = data["readyInMinutes"] as? Int
+                    let ingredientsData = data["ingredients"] as? [[String: Any]]
+                    let ingredients = ingredientsData?.compactMap { ingredientData -> Ingredient? in
+                        guard
+                            let idString = ingredientData["id"] as? String,
+                            let id = UUID(uuidString: idString),
+                            let name = ingredientData["name"] as? String,
+                            let amount = ingredientData["amount"] as? Double,
+                            let unit = ingredientData["unit"] as? String
+                        else {
+                            return nil
+                        }
+                        return Ingredient(id: id, name: name, amount: amount, unit: unit)
+                    }
+                    let instructions = data["instructions"] as? String
+                    
+                    return Recipee(
+                        id: id,
+                        title: title,
+                        image: image,
+                        servings: servings,
+                        readyInMinutes: readyInMinutes,
+                        ingredients: ingredients,
+                        instructions: instructions,
+                        imageType: imageType
+                    )
+                } ?? []
+                completion(.success(recipes))
             }
         }
-
-        dispatchGroup.notify(queue: .main) {
-            completion(.success(favoriteRecipes))
-        }
     }
-}
-
-
-    func fetchRandomRecipes(completion: @escaping (Result<[Recipee], APIError>) -> Void) {
+    
+    // Fetch random recipes from Spoonacular
+    func fetchRandomRecipes(completion: @escaping (Result<[Recipee], Error>) -> Void) {
         let urlString = "\(baseURL)random?number=2&apiKey=\(apiKey)"
+        print("Fetching from URL: \(urlString)")
         
         guard let url = URL(string: urlString) else {
-            completion(.failure(.invalidURL))
+            completion(.failure(APIError.invalidURL))
             return
         }
-        
-        print("Fetching from URL: \(urlString)")
         
         let task = URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
                 print("Network error: \(error)")
-                completion(.failure(.networkError(error)))
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-                print("HTTP status code: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
-                completion(.failure(.noData))
+                completion(.failure(APIError.networkError(error)))
                 return
             }
             
             guard let data = data else {
                 print("No data received")
-                completion(.failure(.noData))
+                completion(.failure(APIError.noData))
                 return
             }
             
-            print("Received data: \(String(data: data, encoding: .utf8) ?? "nil")")
-            
             do {
-                let response = try JSONDecoder().decode(RandomRecipeResponse.self, from: data)
-                let recipes = response.recipes
-                print("Recipes decoded successfully: \(recipes)")
-                completion(.success(recipes))
+                let response = try JSONDecoder().decode(RecipeResponse.self, from: data)
+                print("Decoded response: \(response)")
+                completion(.success(response.recipes))
             } catch {
                 print("Decoding error: \(error)")
-                completion(.failure(.decodingError(error)))
+                completion(.failure(APIError.decodingError(error)))
             }
         }
+        
+        task.resume()
+    }
+
+    // Fetch random breakfast recipes from Spoonacular
+    func fetchRandomBreakfastRecipes(completion: @escaping (Result<[Recipee], APIError>) -> Void) {
+        let urlString = "\(baseURL)random?number=2&tags=breakfast&apiKey=\(apiKey)"
+        
+        guard let url = URL(string: urlString) else {
+            completion(.failure(APIError.invalidURL))
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(.failure(APIError.networkError(error)))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(APIError.noData))
+                return
+            }
+            
+            do {
+                let response = try JSONDecoder().decode(RecipeResponse.self, from: data)
+                completion(.success(response.recipes))
+            } catch {
+                completion(.failure(APIError.decodingError(error)))
+            }
+        }
+        
         task.resume()
     }
 }

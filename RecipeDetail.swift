@@ -1,10 +1,13 @@
 //
-//  RecipeDetailViewController.swift
-//  What's Cookin'
+//  RecipeDetail.swift
+//  What'sCookin
 //
-//  Created by Jevon Williams  on 7/30/24.
+//  Created by Raisa Methila on 7/29/24.
+//  Edited by Jevon Williams
 //  Edited by Jose Vasquez
 //  Edited by J'Quan Moodie
+
+
 
 import UIKit
 import FirebaseFirestore
@@ -62,6 +65,13 @@ class RecipeDetailViewController: UIViewController {
     private let postButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Post to Feed", for: .normal)
+        button.backgroundColor = .cyan.darker
+        button.setTitleColor(.black, for: .normal)
+        button.layer.cornerRadius = 10
+        button.layer.masksToBounds = true
+        button.layer.borderColor = UIColor.cyan.cgColor
+        button.layer.borderWidth = 1
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -69,6 +79,13 @@ class RecipeDetailViewController: UIViewController {
     private let shareButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Share", for: .normal)
+        button.backgroundColor = .cyan.darker
+        button.setTitleColor(.black, for: .normal)
+        button.layer.cornerRadius = 10
+        button.layer.masksToBounds = true
+        button.layer.borderColor = UIColor.cyan.cgColor
+        button.layer.borderWidth = 1
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -76,6 +93,13 @@ class RecipeDetailViewController: UIViewController {
     private let saveUnderButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Save Under", for: .normal)
+        button.backgroundColor = .cyan.darker
+        button.setTitleColor(.black, for: .normal)
+        button.layer.cornerRadius = 10
+        button.layer.masksToBounds = true
+        button.layer.borderColor = UIColor.cyan.cgColor
+        button.layer.borderWidth = 1
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -193,25 +217,9 @@ class RecipeDetailViewController: UIViewController {
     }
 
     @objc private func postButtonTapped() {
-    guard let recipe = recipe else { return }
-    guard let currentUserID = Auth.auth().currentUser?.uid else {
-        showAlert(message: "User not logged in.")
-        return
-    }
-
-    let db = Firestore.firestore()
-    let userRef = db.collection("users").document(currentUserID)
-    
-    userRef.getDocument { [weak self] (document, error) in
-        if let error = error {
-            self?.showAlert(message: "Error fetching user data: \(error.localizedDescription)")
-            return
-        }
-        
-        guard let document = document, document.exists,
-              let userData = document.data(),
-              let username = userData["username"] as? String else {
-            self?.showAlert(message: "Error fetching username.")
+        guard let recipe = recipe else { return }
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            showAlert(message: "User not logged in.")
             return
         }
 
@@ -224,8 +232,7 @@ class RecipeDetailViewController: UIViewController {
             "instructions": recipe.instructions,
             "timestamp": Timestamp(),
             "likesCount": 0,
-            "likedUsers": [],
-            "authorUsername": username // Add the username here
+            "likedUsers": []
         ]
 
         newPostRef.setData(postData) { [weak self] error in
@@ -237,8 +244,6 @@ class RecipeDetailViewController: UIViewController {
             }
         }
     }
-}
-
 
     @objc private func shareButtonTapped() {
         guard let recipe = recipe else { return }
@@ -326,22 +331,19 @@ class RecipeDetailViewController: UIViewController {
             instructionsTextView.topAnchor.constraint(equalTo: readyInMinutesLabel.bottomAnchor, constant: 16),
             instructionsTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             instructionsTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            instructionsTextView.heightAnchor.constraint(equalToConstant: 150),
+            instructionsTextView.bottomAnchor.constraint(equalTo: postButton.topAnchor, constant: -16),
 
             favoriteButton.topAnchor.constraint(equalTo: instructionsTextView.bottomAnchor, constant: 16),
             favoriteButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             favoriteButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
-            postButton.topAnchor.constraint(equalTo: favoriteButton.bottomAnchor, constant: 8),
+            postButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             postButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            postButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
-            shareButton.topAnchor.constraint(equalTo: postButton.bottomAnchor, constant: 8),
-            shareButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            shareButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            shareButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            shareButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            saveUnderButton.topAnchor.constraint(equalTo: shareButton.bottomAnchor, constant: 8),
-            saveUnderButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            saveUnderButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             saveUnderButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
     }
@@ -365,5 +367,12 @@ extension UIColor {
         return UIColor { traitCollection in
             return traitCollection.userInterfaceStyle == .dark ? .lightGray : .systemBlue
         }
+    }
+}
+
+// UIColor extension for darker cyan
+extension UIColor {
+    var darker: UIColor {
+        return self.withAlphaComponent(0.8)
     }
 }
