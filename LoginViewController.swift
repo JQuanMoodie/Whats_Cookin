@@ -18,7 +18,7 @@ class LoginViewController: UIViewController {
 
     //background image 
     private let backgroundImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "loginpage.png"))
+        let imageView = UIImageView(image: UIImage(named: "loginpage2.png"))
         imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -28,6 +28,7 @@ class LoginViewController: UIViewController {
         let textField = UITextField()
         textField.placeholder = "Email"
         textField.borderStyle = .roundedRect
+        textField.backgroundColor = UIColor(red: 1.0, green: 0.8, blue: 0.7, alpha: 1.0) // Peachy color
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
@@ -37,6 +38,7 @@ class LoginViewController: UIViewController {
         textField.placeholder = "Password"
         textField.isSecureTextEntry = true
         textField.borderStyle = .roundedRect
+        textField.backgroundColor = UIColor(red: 1.0, green: 0.8, blue: 0.7, alpha: 1.0) // Peachy color
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
@@ -45,6 +47,11 @@ class LoginViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Login", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        //login button white
+        button.backgroundColor = .white
+        button.setTitleColor(.black, for: .normal)
+        button.layer.cornerRadius = 5
+
         button.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -53,6 +60,11 @@ class LoginViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Sign Up", for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
+        //sign up button white
+        button.backgroundColor = .white
+        button.setTitleColor(.black, for: .normal)
+        button.layer.cornerRadius = 5
+
         button.addTarget(self, action: #selector(signUpButtonTapped), for: .touchUpInside)
         return button
     }()
