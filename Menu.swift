@@ -97,7 +97,7 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
         case "Side Dish":
             imageName = "leaf.fill"
         case "Appetizer":
-            imageName = "appetizer" // Adjust this line with the appropriate SF Symbol if available
+            imageName = "fork.knife"  // Adjust this line with the appropriate SF Symbol if available
         case "Snack":
             imageName = "bag.fill"
         case "Shopping Cart":
