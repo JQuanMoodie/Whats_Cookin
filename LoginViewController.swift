@@ -64,6 +64,10 @@ class LoginViewController: UIViewController {
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 5
 
+        button.backgroundColor = UIColor.lightGray // Set background color to light gray
+        button.layer.cornerRadius = 25 // Set a higher value for a more rounded button
+        button.clipsToBounds = true // Ensure subviews are clipped to the bounds
+
         button.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -121,6 +125,10 @@ class LoginViewController: UIViewController {
 
             loginButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loginButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 20),
+            //rounded 
+            loginButton.widthAnchor.constraint(equalTo: usernameTextField.widthAnchor, multiplier: 0.5), // Set width to half of the username text field
+            loginButton.heightAnchor.constraint(equalToConstant: 50), // Set height for consistent rounding
+
 
             signUpButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             signUpButton.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 10),
