@@ -56,7 +56,7 @@ class RecipeService {
     private let apiKey = "4797a64a1bcc4191b17e6da86f903914"
     private let baseURL = "https://api.spoonacular.com/recipes/"
     private let db = Firestore.firestore()
-    
+
     // Fetch recipes with query parameters
     func fetchRecipes(query: String?, includeIngredients: String?, excludeIngredients: String?, completion: @escaping (Result<[Recipee], APIError>) -> Void) {
         var urlString = "\(baseURL)complexSearch?apiKey=\(apiKey)"
@@ -329,5 +329,35 @@ class RecipeService {
         
         task.resume()
     }
-}
 
+    // Fetch random drink recipes from Spoonacular
+    func fetchRandomDrinkRecipes(completion: @escaping (Result<[Recipee], APIError>) -> Void) {
+        let urlString = "\(baseURL)random?number=2&tags=drink&apiKey=\(apiKey)"
+        
+        guard let url = URL(string: urlString) else {
+            completion(.failure(APIError.invalidURL))
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(.failure(APIError.networkError(error)))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(APIError.noData))
+                return
+            }
+            
+            do {
+                let response = try JSONDecoder().decode(RecipeResponse.self, from: data)
+                completion(.success(response.recipes))
+            } catch {
+                completion(.failure(APIError.decodingError(error)))
+            }
+        }
+        
+        task.resume()
+    }
+}
