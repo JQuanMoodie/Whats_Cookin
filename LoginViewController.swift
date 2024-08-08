@@ -16,6 +16,14 @@ class LoginViewController: UIViewController {
 
     weak var delegate: LoginViewControllerDelegate?
 
+    //background image 
+    private let backgroundImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(named: "loginpage.png"))
+        imageView.contentMode = .scaleAspectFill
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+
     private let usernameTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Email"
@@ -52,7 +60,9 @@ class LoginViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .white
+        //view.backgroundColor = .white
+        //updated background image
+        view.addSubview(backgroundImageView)
 
         view.addSubview(usernameTextField)
         view.addSubview(passwordTextField)
@@ -64,6 +74,13 @@ class LoginViewController: UIViewController {
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
+            
+            // Background image constraints
+            backgroundImageView.topAnchor.constraint(equalTo: view.topAnchor),
+            backgroundImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+
             usernameTextField.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             usernameTextField.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -50),
             usernameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
