@@ -467,7 +467,7 @@ class RecipeService {
 
     // Fetch random side dish recipes from Spoonacular
 func fetchRandomSideDishRecipes(completion: @escaping (Result<[Recipee], APIError>) -> Void) {
-    let urlString = "\(baseURL)random?number=2&tags=sidedish&apiKey=\(apiKey)"
+    let urlString = "\(baseURL)random?number=2&tags=side_dish&apiKey=\(apiKey)"
     
     guard let url = URL(string: urlString) else {
         completion(.failure(APIError.invalidURL))
