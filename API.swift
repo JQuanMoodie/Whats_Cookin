@@ -464,4 +464,35 @@ class RecipeService {
         
         task.resume()
     }
+
+    // Fetch random side dish recipes from Spoonacular
+func fetchRandomSideDishRecipes(completion: @escaping (Result<[Recipee], APIError>) -> Void) {
+    let urlString = "\(baseURL)random?number=2&tags=sidedish&apiKey=\(apiKey)"
+    
+    guard let url = URL(string: urlString) else {
+        completion(.failure(APIError.invalidURL))
+        return
+    }
+    
+    let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        if let error = error {
+            completion(.failure(APIError.networkError(error)))
+            return
+        }
+        
+        guard let data = data else {
+            completion(.failure(APIError.noData))
+            return
+        }
+        
+        do {
+            let response = try JSONDecoder().decode(RecipeResponse.self, from: data)
+            completion(.success(response.recipes))
+        } catch {
+            completion(.failure(APIError.decodingError(error)))
+        }
+    }
+    
+    task.resume()
+  }
 }
