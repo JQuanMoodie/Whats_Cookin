@@ -2,7 +2,6 @@
 // 7/17/2024
 // Rachel Wu 
 
-
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
@@ -16,42 +15,27 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
     }()
     
     private let db = Firestore.firestore()
-    private let recipeService = RecipeService()
     
     var ingredients = [String]()
-    var recipes = [Recipee]()
-    var availableIngredients: [Ingredient] = [] // Store available ingredients
     
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Grocery List"
         view.addSubview(tableView)
         tableView.dataSource = self
-        tableView.delegate = self // Set delegate
+        tableView.delegate = self
+        
         let control = UIRefreshControl()
         control.addTarget(self, action: #selector(fetchItems), for: .valueChanged)
         tableView.refreshControl = control
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd))
+        
+        // Add Edit and Cart buttons to the navigation bar
+        navigationItem.rightBarButtonItems = [
+            UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapAdd)),
+            UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(toggleEditing))
+        ]
+        
         fetchItems()
-        
-        // Button for importing missing items
-        let importButton = UIButton(type: .system)
-        importButton.setTitle("Import Ingredients", for: .normal)
-        importButton.addTarget(self, action: #selector(importMissingIngredients), for: .touchUpInside)
-        importButton.frame = CGRect(x: 0, y: 0, width: 200, height: 50)
-        importButton.center = view.center
-        view.addSubview(importButton)
-        
-        // Button for navigating to shopping cart
-        let cartButton = UIButton(type: .system)
-        cartButton.setTitle("Shopping Cart", for: .normal)
-        cartButton.addTarget(self, action: #selector(openShoppingCart), for: .touchUpInside)
-        cartButton.frame = CGRect(x: 0, y: 60, width: 200, height: 50)
-        cartButton.center = CGPoint(x: view.center.x, y: view.center.y + 60)
-        view.addSubview(cartButton)
-        
-        // Fetch recipes from API
-        fetchRecipesFromAPI()
     }
     
     @objc func fetchItems() {
@@ -102,30 +86,120 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
         }
     }
     
-    @objc func importMissingIngredients() {
-        let recipeIngredients = recipes.compactMap { $0.ingredients }.flatMap { $0 }
-        let missingIngredients = determineMissingIngredients(from: recipeIngredients)
-        importIngredients(ingredients: missingIngredients)
+    // Toggle editing mode for the table view
+    @objc func toggleEditing() {
+        tableView.setEditing(!tableView.isEditing, animated: true)
     }
     
-    func determineMissingIngredients(from recipeIngredients: [Ingredient]) -> [Ingredient] {
-        return recipeIngredients.filter { recipeIngredient in
-            !availableIngredients.contains(where: { $0.name == recipeIngredient.name })
+    // Handle selecting a row to either edit or purchase the item
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let ingredient = ingredients[indexPath.row]
+        presentPurchaseOrEditOption(for: ingredient, at: indexPath)
+    }
+    
+    // Present options to either edit or purchase the item
+    func presentPurchaseOrEditOption(for ingredient: String, at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Options", message: "Would you like to edit or purchase this item?", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Edit", style: .default, handler: { [weak self] _ in
+            self?.presentEditItemAlert(for: ingredient, at: indexPath)
+        }))
+        alert.addAction(UIAlertAction(title: "Purchase", style: .default, handler: { [weak self] _ in
+            self?.confirmAndMoveItemToCart(name: ingredient, at: indexPath)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true)
+    }
+    
+    // Confirm and then move the item to the shopping cart and delete it from the grocery list
+    func confirmAndMoveItemToCart(name: String, at indexPath: IndexPath) {
+        let confirmAlert = UIAlertController(title: "Confirm Purchase", message: "Are you sure you want to purchase \(name) and remove it from your grocery list?", preferredStyle: .alert)
+        confirmAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        confirmAlert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { [weak self] _ in
+            self?.moveItemToCart(name: name, at: indexPath)
+        }))
+        present(confirmAlert, animated: true)
+    }
+    
+    // Move the item to the shopping cart and delete it from the grocery list
+    func moveItemToCart(name: String, at indexPath: IndexPath) {
+        addToShoppingCart(name: name) { [weak self] success in
+            if success {
+                self?.deleteItem(name: name, at: indexPath)
+            }
         }
     }
     
-    func importIngredients(ingredients: [Ingredient]) {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        let batch = db.batch()
-        for ingredient in ingredients {
-            let newItemRef = db.collection("users").document(userId).collection("groceryItems").document()
-            batch.setData(["name": ingredient.name], forDocument: newItemRef)
+    func addToShoppingCart(name: String, completion: @escaping (Bool) -> Void) {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            completion(false)
+            return
         }
-        batch.commit { [weak self] error in
+        let newItem: [String: Any] = ["name": name]
+        db.collection("users").document(userId).collection("shoppingCartItems").addDocument(data: newItem) { error in
             if let error = error {
-                print("Error writing batch: \(error)")
+                print("Error adding to shopping cart: \(error.localizedDescription)")
+                completion(false)
             } else {
-                self?.fetchItems()
+                completion(true)
+            }
+        }
+    }
+    
+    // Update the item in Firestore
+    func updateItem(name: String, at indexPath: IndexPath) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        let oldName = ingredients[indexPath.row]
+        
+        db.collection("users").document(userId).collection("groceryItems")
+            .whereField("name", isEqualTo: oldName)
+            .getDocuments { [weak self] (querySnapshot, error) in
+                if let error = error {
+                    print("Error getting documents: \(error)")
+                } else if let document = querySnapshot?.documents.first {
+                    document.reference.updateData(["name": name]) { error in
+                        if let error = error {
+                            print("Error updating document: \(error)")
+                        } else {
+                            self?.ingredients[indexPath.row] = name
+                            DispatchQueue.main.async {
+                                self?.tableView.reloadRows(at: [indexPath], with: .automatic)
+                            }
+                        }
+                    }
+                }
+            }
+    }
+    
+    // Enable swipe-to-delete
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            let ingredient = ingredients[indexPath.row]
+            deleteItem(name: ingredient)
+        }
+    }
+    
+
+    // Delete the item from Firestore and the local list
+    func deleteItem(name: String, at indexPath: IndexPath) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        db.collection("users").document(userId).collection("groceryItems").whereField("name", isEqualTo: name).getDocuments { [weak self] (querySnapshot, error) in
+            if let error = error {
+                print("Error deleting document: \(error)")
+                return
+            } else {
+                for document in querySnapshot!.documents {
+                    document.reference.delete { error in
+                        if let error = error {
+                            print("Error removing document: \(error)")
+                        } else {
+                            self?.ingredients.remove(at: indexPath.row)
+                            DispatchQueue.main.async {
+                                self?.tableView.deleteRows(at: [indexPath], with: .automatic)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -143,111 +217,5 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = ingredients[indexPath.row]
         return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        let ingredient = ingredients[indexPath.row]
-        shopForIngredient(ingredient: ingredient)
-    }
-    
-    // Enable swipe-to-delete
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            let ingredient = ingredients[indexPath.row]
-            deleteItem(name: ingredient)
-        }
-    }
-    
-    func deleteItem(name: String) {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        db.collection("users").document(userId).collection("groceryItems").whereField("name", isEqualTo: name).getDocuments { [weak self] (querySnapshot, error) in
-            if let error = error {
-                print("Error deleting document: \(error)")
-                return
-            } else {
-                for document in querySnapshot!.documents {
-                    document.reference.delete { error in
-                        if let error = error {
-                            print("Error removing document: \(error)")
-                        } else {
-                            self?.fetchItems()
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    func fetchRecipesFromAPI() {
-        let query = "pasta" // Example query
-        let includeIngredients: String? = nil // Adjust based on your use case
-        let excludeIngredients: String? = nil // Adjust based on your use case
-        
-        recipeService.fetchRecipes(query: query, includeIngredients: includeIngredients, excludeIngredients: excludeIngredients) { [weak self] result in
-            switch result {
-            case .success(let recipes):
-                self?.recipes = recipes
-                print("Fetched recipes: \(recipes)")
-            case .failure(let error):
-                print("Error fetching recipes: \(error)")
-            }
-        }
-    }
-    
-    @objc func openShoppingCart() {
-        let shoppingCartVC = ShoppingCartViewController()
-        navigationController?.pushViewController(shoppingCartVC, animated: true)
-    }
-    
-    func shopForIngredient(ingredient: String) {
-        let apiKey = "YOUR-API-KEY" // Replace with your actual API key
-        let query = ingredient.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let urlString = "https://api.spoonacular.com/food/products/search?query=\(query)&apiKey=\(apiKey)"
-        guard let url = URL(string: urlString) else { return }
-        
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("Error: \(error)")
-                return
-            }
-            
-            guard let data = data else { return }
-            
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let products = json["products"] as? [[String: Any]] {
-                    DispatchQueue.main.async {
-                        self.showProducts(products: products)
-                    }
-                }
-            } catch {
-                print("Error parsing JSON: \(error)")
-            }
-        }
-        
-        task.resume()
-    }
-    
-    func showProducts(products: [[String: Any]]) {
-        let alert = UIAlertController(title: "Products Found", message: nil, preferredStyle: .actionSheet)
-        for product in products {
-            if let title = product["title"] as? String {
-                alert.addAction(UIAlertAction(title: title, style: .default, handler: { _ in
-                    if let productId = product["id"] as? Int {
-                        self.openProductInBrowser(productId: productId)
-                    }
-                }))
-            }
-        }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        present(alert, animated: true)
-    }
-    
-    func openProductInBrowser(productId: Int) {
-        let urlString = "https://spoonacular.com/food-products/\(productId)"
-        if let url = URL(string: urlString) {
-            UIApplication.shared.open(url)
-        }
     }
 }
