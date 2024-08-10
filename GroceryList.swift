@@ -2,15 +2,60 @@
 // 7/17/2024
 // Rachel Wu 
 
+//Grocery List View Controller
+// 7/17/2024
+// Rachel Wu 
+
+// Grocery List View Controller
+// 7/17/2024
+// Rachel Wu 
+
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
+//checkbox
+class GroceryListCell: UITableViewCell {
+    
+    let checkboxButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "square"), for: .normal)
+        button.setImage(UIImage(systemName: "checkmark.square"), for: .selected)
+        return button
+    }()
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        contentView.addSubview(checkboxButton)
+        
+        // Position the checkbox on the left side
+        checkboxButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            checkboxButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+            checkboxButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            checkboxButton.widthAnchor.constraint(equalToConstant: 30),
+            checkboxButton.heightAnchor.constraint(equalToConstant: 30)
+        ])
+        
+        checkboxButton.addTarget(self, action: #selector(toggleCheckbox), for: .touchUpInside)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc func toggleCheckbox() {
+        checkboxButton.isSelected.toggle()
+    }
+}
+
+// GroceryListViewController managing the table view
 class GroceryListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     let tableView: UITableView = {
         let tableView = UITableView()
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(GroceryListCell.self, forCellReuseIdentifier: "GroceryListCell")
+        tableView.backgroundColor = UIColor(red: 1.0, green: 0.9, blue: 0.8, alpha: 1.0) // Peach color
         return tableView
     }()
     
@@ -175,11 +220,10 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             let ingredient = ingredients[indexPath.row]
-            deleteItem(name: ingredient)
+            deleteItem(name: ingredient, at: indexPath)  // Ensure the deletion works with the index path
         }
     }
     
-
     // Delete the item from Firestore and the local list
     func deleteItem(name: String, at indexPath: IndexPath) {
         guard let userId = Auth.auth().currentUser?.uid else { return }
@@ -214,7 +258,7 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "GroceryListCell", for: indexPath) as! GroceryListCell
         cell.textLabel?.text = ingredients[indexPath.row]
         return cell
     }
