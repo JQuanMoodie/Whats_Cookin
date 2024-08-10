@@ -19,7 +19,7 @@ extension NSNotification.Name {
     static let recipeCategorized = NSNotification.Name("recipeCategorized")
 }
 
-class RecipeDetailViewController: UIViewController {
+class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     var recipe: Recipee?
     
     private let titleLabel: UILabel = {
@@ -47,6 +47,12 @@ class RecipeDetailViewController: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+    //ingredients
+    private let ingredientsTableView: UITableView = {
+        let tableView = UITableView()
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        return tableView
     }()
 
     private let instructionsTextView: UITextView = {
@@ -114,6 +120,7 @@ class RecipeDetailViewController: UIViewController {
         view.addSubview(imageView)
         view.addSubview(servingsLabel)
         view.addSubview(readyInMinutesLabel)
+        view.addSubview(ingredientsTableView)   //ingredients
         view.addSubview(instructionsTextView)
         view.addSubview(favoriteButton)
         view.addSubview(postButton)
@@ -122,7 +129,12 @@ class RecipeDetailViewController: UIViewController {
         
         setupConstraints()
         setupData()
-        
+
+        //ingredients
+        ingredientsTableView.dataSource = self
+        ingredientsTableView.delegate = self
+        //
+
         AppData.shared.addVisited(recipe: recipe!)
         
         favoriteButton.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
@@ -143,11 +155,30 @@ class RecipeDetailViewController: UIViewController {
         servingsLabel.textColor = .customLabel
         readyInMinutesLabel.text = "Ready in: \(recipe.readyInMinutes ?? 0) minutes"
         readyInMinutesLabel.textColor = .customLabel
+
+        //ingredients
+        ingredientsTableView.reloadData()
         
         instructionsTextView.text = recipe.instructions
         instructionsTextView.backgroundColor = .customBackground
         instructionsTextView.textColor = .customLabel
     }
+
+    //display ingredients
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return recipe?.ingredients?.count ?? 0
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "IngredientCell") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "IngredientCell")
+        if let ingredient = recipe?.ingredients?[indexPath.row] {
+            cell.textLabel?.text = ingredient.name
+            cell.detailTextLabel?.text = "\(ingredient.amount) \(ingredient.unit)"
+        }
+        return cell
+    }
+    //
+
 
     @objc private func favoriteButtonTapped() {
         guard let recipe = recipe else { return }
@@ -327,6 +358,13 @@ class RecipeDetailViewController: UIViewController {
             readyInMinutesLabel.topAnchor.constraint(equalTo: servingsLabel.bottomAnchor, constant: 8),
             readyInMinutesLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             readyInMinutesLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+
+            //ingredients display
+            ingredientsTableView.topAnchor.constraint(equalTo: readyInMinutesLabel.bottomAnchor, constant: 16),
+            ingredientsTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            ingredientsTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            ingredientsTableView.heightAnchor.constraint(equalToConstant: 200),
+            //
 
             instructionsTextView.topAnchor.constraint(equalTo: readyInMinutesLabel.bottomAnchor, constant: 16),
             instructionsTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
