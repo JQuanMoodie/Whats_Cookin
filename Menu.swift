@@ -4,11 +4,12 @@
 //
 //  Created by Jose Vasquez on 7/20/24.
 //  Edited by: Raisa Methila
+//  Edited by Rachel Wu
 
 import UIKit
 
 class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let channels = ["Breakfast", "Main Course", "Drink", "Dessert", "Side Dish", "Appetizer", "Snack", "Shopping Cart"]
+    let channels = ["Breakfast", "Main Course", "Drink", "Dessert", "Side Dish", "Appetizer", "Snack", "Shopping Cart", "Grocery List"]
     var tableView: UITableView!
     var dismissSidebar: (() -> Void)?
 
@@ -102,6 +103,8 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
             imageName = "bag.fill"
         case "Shopping Cart":
             imageName = "cart"
+        case "Grocery List":  //case for Grocery List
+            imageName = "list.bullet"
         default:
             imageName = "questionmark.circle.fill"
         }
@@ -175,6 +178,14 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                 navController.pushViewController(shoppingVC, animated: true)
             } else {
                 let navController = UINavigationController(rootViewController: shoppingVC)
+                present(navController, animated: true, completion: nil)
+            }
+        } else if selectedChannel == "Grocery List" {  // New case for Grocery List
+            let groceryListVC = GroceryListViewController()
+            if let navController = navigationController {
+                navController.pushViewController(groceryListVC, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: groceryListVC)
                 present(navController, animated: true, completion: nil)
             }
         }
