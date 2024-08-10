@@ -160,12 +160,10 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
         readyInMinutesLabel.text = "Ready in: \(recipe.readyInMinutes ?? 0) minutes"
         readyInMinutesLabel.textColor = .customLabel
 
-<<<<<<< HEAD
         //ingredients
         ingredientsTableView.reloadData()
         
         instructionsTextView.text = recipe.instructions
-=======
         if let rawInstructions = recipe.instructions {
             let cleanedInstructions = formatInstructions(rawInstructions)
             instructionsTextView.text = cleanedInstructions
@@ -173,12 +171,10 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
             instructionsTextView.text = "No instructions available."
         }
 
->>>>>>> 0956f69b4a8f5db97f275fcc63b21be374f832a7
         instructionsTextView.backgroundColor = .customBackground
         instructionsTextView.textColor = .customLabel
     }
 
-<<<<<<< HEAD
     //display ingredients
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return recipe?.ingredients?.count ?? 0
@@ -194,7 +190,6 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
     }
     //
 
-=======
     // Add the formatInstructions function here
     private func formatInstructions(_ rawInstructions: String) -> String {
         // Remove HTML tags and format the instructions
@@ -211,7 +206,6 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
 
         return formattedInstructions.trimmingCharacters(in: .whitespacesAndNewlines)
     }
->>>>>>> 0956f69b4a8f5db97f275fcc63b21be374f832a7
 
     @objc private func favoriteButtonTapped() {
         guard let recipe = recipe else { return }
