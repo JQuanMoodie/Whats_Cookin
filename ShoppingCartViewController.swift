@@ -11,6 +11,7 @@ class ShoppingCartViewController: UIViewController, UITableViewDataSource {
     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.backgroundColor = UIColor(red: 1.0, green: 0.9, blue: 0.8, alpha: 1.0) // Peach color
         return tableView
     }()
     
