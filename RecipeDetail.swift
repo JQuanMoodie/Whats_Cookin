@@ -8,7 +8,6 @@
 //  Edited by J'Quan Moodie
 
 
-
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
@@ -21,10 +20,11 @@ extension NSNotification.Name {
 
 class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     var recipe: Recipee?
-    
+
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 24)
+        label.numberOfLines = 0 // Allow label to wrap text
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -64,14 +64,22 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
 
     private let favoriteButton: UIButton = {
         let button = UIButton(type: .system)
+        button.setTitle("Favorite", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .customButton
+        button.layer.cornerRadius = 10
+        button.layer.masksToBounds = true
+        button.layer.borderColor = UIColor.customButton.cgColor
+        button.layer.borderWidth = 1
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
     private let postButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Post to Feed", for: .normal)
-        button.backgroundColor = .cyan.darker
+        button.setTitle("Post", for: .normal)
+        button.backgroundColor = UIColor.darkerColor(for: .customButton) // Use the darkerColor method
         button.setTitleColor(.black, for: .normal)
         button.layer.cornerRadius = 10
         button.layer.masksToBounds = true
@@ -81,25 +89,11 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
     private let shareButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Share", for: .normal)
-        button.backgroundColor = .cyan.darker
-        button.setTitleColor(.black, for: .normal)
-        button.layer.cornerRadius = 10
-        button.layer.masksToBounds = true
-        button.layer.borderColor = UIColor.cyan.cgColor
-        button.layer.borderWidth = 1
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
-    private let saveUnderButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Save Under", for: .normal)
-        button.backgroundColor = .cyan.darker
+        button.backgroundColor = UIColor.darkerColor(for: .customButton) // Use the darkerColor method
         button.setTitleColor(.black, for: .normal)
         button.layer.cornerRadius = 10
         button.layer.masksToBounds = true
@@ -112,6 +106,15 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
 
     private let db = Firestore.firestore()
 
+    private let buttonStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.spacing = 16
+        stackView.distribution = .fillEqually
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.customBackground
@@ -122,10 +125,11 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
         view.addSubview(readyInMinutesLabel)
         view.addSubview(ingredientsTableView)   //ingredients
         view.addSubview(instructionsTextView)
-        view.addSubview(favoriteButton)
-        view.addSubview(postButton)
-        view.addSubview(shareButton)
-        view.addSubview(saveUnderButton)
+        view.addSubview(buttonStackView)
+        
+        buttonStackView.addArrangedSubview(favoriteButton)
+        buttonStackView.addArrangedSubview(postButton)
+        buttonStackView.addArrangedSubview(shareButton)
         
         setupConstraints()
         setupData()
@@ -140,7 +144,6 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
         favoriteButton.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
         postButton.addTarget(self, action: #selector(postButtonTapped), for: .touchUpInside)
         shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
-        saveUnderButton.addTarget(self, action: #selector(saveUnderButtonTapped), for: .touchUpInside)
         updateFavoriteButtonTitle()
     }
 
@@ -156,14 +159,25 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
         readyInMinutesLabel.text = "Ready in: \(recipe.readyInMinutes ?? 0) minutes"
         readyInMinutesLabel.textColor = .customLabel
 
+<<<<<<< HEAD
         //ingredients
         ingredientsTableView.reloadData()
         
         instructionsTextView.text = recipe.instructions
+=======
+        if let rawInstructions = recipe.instructions {
+            let cleanedInstructions = formatInstructions(rawInstructions)
+            instructionsTextView.text = cleanedInstructions
+        } else {
+            instructionsTextView.text = "No instructions available."
+        }
+
+>>>>>>> 0956f69b4a8f5db97f275fcc63b21be374f832a7
         instructionsTextView.backgroundColor = .customBackground
         instructionsTextView.textColor = .customLabel
     }
 
+<<<<<<< HEAD
     //display ingredients
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return recipe?.ingredients?.count ?? 0
@@ -179,6 +193,24 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
     }
     //
 
+=======
+    // Add the formatInstructions function here
+    private func formatInstructions(_ rawInstructions: String) -> String {
+        // Remove HTML tags and format the instructions
+        let instructionSteps = rawInstructions
+            .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression, range: nil)
+            .components(separatedBy: "\n")
+            .filter { !$0.isEmpty }
+
+        // Format the steps with numbers and add line gaps
+        var formattedInstructions = ""
+        for (index, step) in instructionSteps.enumerated() {
+            formattedInstructions += "\(index + 1). \(step.trimmingCharacters(in: .whitespacesAndNewlines))\n\n"
+        }
+
+        return formattedInstructions.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+>>>>>>> 0956f69b4a8f5db97f275fcc63b21be374f832a7
 
     @objc private func favoriteButtonTapped() {
         guard let recipe = recipe else { return }
@@ -239,10 +271,12 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
         recipeRef.getDocument { document, error in
             if let document = document, document.exists {
                 self.favoriteButton.setTitle("Unfavorite", for: .normal)
-                self.favoriteButton.setTitleColor(.systemRed, for: .normal)
+                self.favoriteButton.setTitleColor(.white, for: .normal)
+                self.favoriteButton.backgroundColor = .systemRed
             } else {
                 self.favoriteButton.setTitle("Favorite", for: .normal)
-                self.favoriteButton.setTitleColor(.customButton, for: .normal)
+                self.favoriteButton.setTitleColor(.white, for: .normal)
+                self.favoriteButton.backgroundColor = .customButton
             }
         }
     }
@@ -253,25 +287,40 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
             showAlert(message: "User not logged in.")
             return
         }
-
-        let newPostRef = db.collection("users").document(currentUserID).collection("posts").document()
-        let postData: [String: Any] = [
-            "title": recipe.title,
-            "image": recipe.image,
-            "servings": recipe.servings ?? 0,
-            "readyInMinutes": recipe.readyInMinutes ?? 0,
-            "instructions": recipe.instructions,
-            "timestamp": Timestamp(),
-            "likesCount": 0,
-            "likedUsers": []
-        ]
-
-        newPostRef.setData(postData) { [weak self] error in
-            if let error = error {
-                self?.showAlert(message: "Error posting: \(error.localizedDescription)")
+        
+        // Fetch the current user's document to get the username
+        let userRef = db.collection("users").document(currentUserID)
+        
+        userRef.getDocument { document, error in
+            if let document = document, document.exists {
+                let username = document.data()?["username"] as? String ?? "Unknown"
+                
+                let userPostsRef = self.db.collection("users").document(currentUserID).collection("posts")
+                
+                let newPost: [String: Any] = [
+                    "title": recipe.title,
+                    "image": recipe.image,
+                    "servings": recipe.servings ?? 0,
+                    "readyInMinutes": recipe.readyInMinutes ?? 0,
+                    "instructions": recipe.instructions ?? "",
+                    "content": "\(recipe.title) recipe.",
+                    "timestamp": FieldValue.serverTimestamp(),
+                    "authorID": currentUserID,
+                    "authorUsername": username,
+                    "isRepost": false,
+                    "likesCount": 0
+                ]
+                
+                userPostsRef.addDocument(data: newPost) { error in
+                    if let error = error {
+                        self.showAlert(message: "Error posting to feed: \(error.localizedDescription)")
+                    } else {
+                        NotificationCenter.default.post(name: .recipeCategorized, object: recipe)
+                        self.navigationController?.popViewController(animated: true)
+                    }
+                }
             } else {
-                self?.showAlert(message: "Post created successfully.")
-                self?.navigationController?.popViewController(animated: true)
+                self.showAlert(message: "User data not found.")
             }
         }
     }
@@ -279,65 +328,13 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
     @objc private func shareButtonTapped() {
         guard let recipe = recipe else { return }
         
-        let recipeDetails = """
-        Check out this recipe: \(recipe.title)
-
-        Servings: \(recipe.servings ?? 0)
-        Ready in: \(recipe.readyInMinutes ?? 0) minutes
-
-        Ingredients:
-        \(recipe.ingredients?.map { "\($0.name): \($0.amount) \($0.unit)" }.joined(separator: "\n") ?? "No ingredients available.")
-
-        Instructions:
-        \(recipe.instructions ?? "No instructions available.")
-        """
-
-        var items: [Any] = [recipeDetails]
-        if let imageUrl = URL(string: recipe.image) {
-            items.append(imageUrl)
-        }
+        let shareText = "Check out this recipe: \(recipe.title)"
+        let shareURL = URL(string: recipe.image) ?? URL(string: "https://www.example.com")!
         
-        let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        let activityViewController = UIActivityViewController(activityItems: [shareText, shareURL], applicationActivities: nil)
+        activityViewController.excludedActivityTypes = [.addToReadingList, .assignToContact]
+        
         present(activityViewController, animated: true, completion: nil)
-    }
-
-    @objc private func saveUnderButtonTapped() {
-        let alertController = UIAlertController(title: "Save Under", message: "Select a category", preferredStyle: .actionSheet)
-        let categories = ["Breakfast", "Lunch", "Dinner", "Dessert"]
-
-        for category in categories {
-            let action = UIAlertAction(title: category, style: .default) { _ in
-                self.saveRecipeUnderCategory(category: category)
-            }
-            alertController.addAction(action)
-        }
-
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-        alertController.addAction(cancelAction)
-        present(alertController, animated: true, completion: nil)
-    }
-
-    private func saveRecipeUnderCategory(category: String) {
-        guard let recipe = recipe else { return }
-        guard let userId = Auth.auth().currentUser?.uid else {
-            showAlert(message: "User is not authenticated")
-            return
-        }
-
-        let categoryRef = db.collection("users").document(userId).collection("recipeCategories").document(category)
-        categoryRef.setData(["recipes": FieldValue.arrayUnion([recipe.id])], merge: true) { error in
-            if let error = error {
-                self.showAlert(message: "Error saving recipe under \(category): \(error.localizedDescription)")
-            } else {
-                self.showAlert(message: "Recipe saved under \(category).")
-            }
-        }
-    }
-
-    private func showAlert(message: String) {
-        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-        present(alert, animated: true, completion: nil)
     }
 
     private func setupConstraints() {
@@ -369,48 +366,46 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
             instructionsTextView.topAnchor.constraint(equalTo: readyInMinutesLabel.bottomAnchor, constant: 16),
             instructionsTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             instructionsTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            instructionsTextView.bottomAnchor.constraint(equalTo: postButton.topAnchor, constant: -16),
+            instructionsTextView.bottomAnchor.constraint(equalTo: buttonStackView.topAnchor, constant: -16),
 
-            favoriteButton.topAnchor.constraint(equalTo: instructionsTextView.bottomAnchor, constant: 16),
-            favoriteButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            favoriteButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
-            postButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            postButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-
-            shareButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            shareButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-
-            saveUnderButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            saveUnderButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+            buttonStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            buttonStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            buttonStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            buttonStackView.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
+
+    private func showAlert(message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true, completion: nil)
+    }
 }
 
-// UIColor extension for custom colors
+
+
 extension UIColor {
     static var customBackground: UIColor {
-        return UIColor { traitCollection in
-            return traitCollection.userInterfaceStyle == .dark ? .black : .white
-        }
+        return UIColor(named: "CustomBackground") ?? UIColor.systemBackground
     }
-
+    
     static var customLabel: UIColor {
-        return UIColor { traitCollection in
-            return traitCollection.userInterfaceStyle == .dark ? .lightGray : .black
-        }
+        return UIColor(named: "CustomLabel") ?? UIColor.label
     }
-
+    
     static var customButton: UIColor {
-        return UIColor { traitCollection in
-            return traitCollection.userInterfaceStyle == .dark ? .lightGray : .systemBlue
-        }
+        return UIColor(named: "CustomButton") ?? UIColor.systemBlue
     }
-}
-
-// UIColor extension for darker cyan
-extension UIColor {
-    var darker: UIColor {
-        return self.withAlphaComponent(0.8)
+    
+    static func darkerColor(for color: UIColor) -> UIColor {
+        guard let components = color.cgColor.components, components.count >= 3 else {
+            return color
+        }
+        
+        let red = components[0]
+        let green = components[1]
+        let blue = components[2]
+        
+        return UIColor(red: red * 0.8, green: green * 0.8, blue: blue * 0.8, alpha: 1.0)
     }
 }

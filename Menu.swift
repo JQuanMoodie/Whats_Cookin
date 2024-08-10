@@ -8,7 +8,7 @@
 import UIKit
 
 class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let channels = ["Breakfast", "Main Course", "Drink", "Dessert", "Shopping Cart"]
+    let channels = ["Breakfast", "Main Course", "Drink", "Dessert", "Side Dish", "Appetizer", "Snack", "Shopping Cart"]
     var tableView: UITableView!
     var dismissSidebar: (() -> Void)?
 
@@ -94,6 +94,12 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
             imageName = "cup.and.saucer.fill"
         case "Dessert":
             imageName = "flame.fill"
+        case "Side Dish":
+            imageName = "leaf.fill"
+        case "Appetizer":
+            imageName = "fork.knife"  // Adjust this line with the appropriate SF Symbol if available
+        case "Snack":
+            imageName = "bag.fill"
         case "Shopping Cart":
             imageName = "cart"
         default:
@@ -137,6 +143,30 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                 navController.pushViewController(dessertVC, animated: true)
             } else {
                 let navController = UINavigationController(rootViewController: dessertVC)
+                present(navController, animated: true, completion: nil)
+            }
+        } else if selectedChannel == "Side Dish" {
+            let sideDishVC = SideDishViewController()
+            if let navController = navigationController {
+                navController.pushViewController(sideDishVC, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: sideDishVC)
+                present(navController, animated: true, completion: nil)
+            }
+        } else if selectedChannel == "Appetizer" {
+            let appetizerVC = AppetizerViewController()
+            if let navController = navigationController {
+                navController.pushViewController(appetizerVC, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: appetizerVC)
+                present(navController, animated: true, completion: nil)
+            }
+        } else if selectedChannel == "Snack" {
+            let snackVC = SnackViewController()
+            if let navController = navigationController {
+                navController.pushViewController(snackVC, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: snackVC)
                 present(navController, animated: true, completion: nil)
             }
         } else if selectedChannel == "Shopping Cart" {

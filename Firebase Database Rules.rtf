@@ -5,22 +5,25 @@
 \margl1440\margr1440\vieww11520\viewh8400\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f0\fs24 \cf0 rules_version = '2';\
-\
-service cloud.firestore \{\
+\f0\fs24 \cf0 service cloud.firestore \{\
   match /databases/\{database\}/documents \{\
-    \
+\
     // Rules for the users collection\
     match /users/\{userId\} \{\
       // Allow read access if the user is authenticated\
       allow read: if request.auth != null;\
-      \
+\
       // Allow write access if the user is authenticated and the user ID matches the authenticated user's ID\
       allow write: if request.auth != null && request.auth.uid == userId;\
 \
+      // Allow updating followersCount and followingCount by any authenticated user\
+      allow update: if request.auth != null && (\
+        request.resource.data.keys().hasAll(['followersCount', 'followingCount']) &&\
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['followersCount', 'followingCount'])\
+      );\
+\
       // Rules for the groceryItems subcollection\
       match /groceryItems/\{itemId\} \{\
-        // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
         allow read, write: if request.auth != null && request.auth.uid == userId;\
       \}\
 \
@@ -38,26 +41,34 @@ service cloud.firestore \{\
       match /posts/\{postId\} \{\
         // Allow read access if the user is authenticated\
         allow read: if request.auth != null;\
+\
         // Allow write access if the user is authenticated and the user ID matches the authenticated user's ID\
         allow write: if request.auth != null && request.auth.uid == userId;\
+\
+        // Allow update to likesCount and likedUsers by any authenticated user\
+        allow update: if request.auth != null &&\
+          // Only allow updating likesCount and likedUsers fields\
+          request.resource.data.keys().hasAll(['likesCount', 'likedUsers']) &&\
+          request.resource.data.diff(resource.data).changedKeys().hasOnly(['likesCount', 'likedUsers']);\
       \}\
 \
       // Rules for the shoppingCartItems subcollection\
       match /shoppingCartItems/\{itemId\} \{\
-        // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
         allow read, write: if request.auth != null && request.auth.uid == userId;\
       \}\
 \
       // Rules for the savedRecipes subcollection\
       match /savedRecipes/\{recipeId\} \{\
-        // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
         allow read, write: if request.auth != null && request.auth.uid == userId;\
       \}\
 \
       // Rules for the favoriteRecipes subcollection\
       match /favoriteRecipes/\{recipeId\} \{\
-        // Allow read and write access if the user is authenticated and the user ID matches the authenticated user's ID\
-        allow read, write: if request.auth != null && request.auth.uid == userId;\
+        // Allow read access if the user is authenticated and is accessing their own favoriteRecipes\
+        allow read: if request.auth != null && request.auth.uid == userId;\
+\
+        // Allow write access if the user is authenticated and is adding/removing their favorite recipes\
+        allow write: if request.auth != null && request.auth.uid == userId;\
       \}\
     \}\
 \
@@ -65,7 +76,7 @@ service cloud.firestore \{\
     match /recipes/\{recipeId\} \{\
       // Allow read access to all authenticated users\
       allow read: if request.auth != null;\
-      \
+\
       // Allow write access only to admins\
       allow write: if request.auth != null && request.auth.token.admin == true;\
     \}\
@@ -80,5 +91,4 @@ service cloud.firestore \{\
     \}\
   \}\
 \}\
-\
 }

@@ -4,11 +4,19 @@ Installations:
 Xcode (latest version preferred)
 Firebase iOS SDK-https://github.com/firebase/firebase-ios-sdk. 
 
-Setup(Step 1): Add a Firebase configuration file
-1. Download the GoogleService-Info.plist to obtain your Firebase Apple platforms config file (GoogleService-Info.plist).
-2. Move your config file into the root of your Xcode project. If prompted, select to add the config file to all targets.
+Step 1 : Create an XCode Project 
+1. Click Create New Project when you open up XCode
+2. When choosing the template go to the iOS tab and click App and then hit next
+3. Type in a product name, for Interface choose Storyboard, for Language choose Swift, for Storage choose Core Data then hit next
+4. Choose a location on your machine and click create
 
-Setup(Step 2): Add Firebase SDKs to your app
+Step 2 : Copying Files
+1. Download a zip version of all the files present in the GitHub
+2. Copy and Paste/Move all these files into the folder containing the project code files. If prompted to replace, merge etc. then always choose replace
+3. When looking at the project in XCode, there should be side tab on the left side with different icons. Choose the folder icon and click the + sign on the bottom left and then click Add files to "..."
+4. Add every file that ends in .swift and the GoogleService-Info.plist
+
+Step 3 : Add Firebase SDKs to your app
 
 Use Swift Package Manager to install and manage Firebase dependencies.
 1. In Xcode, with your app project open, navigate to File > Add Packages.
@@ -23,8 +31,11 @@ Use Swift Package Manager to install and manage Firebase dependencies.
         FirebaseInstallations
         FirebaseDatabase
         FirebaseVertexAI-Preview
-         And any other libraries that have these      names.
+         And any other libraries that have these names.
 
+DONE - Now your project should be up and running and be able to create a successful build.
+
+The following is a list of all the views in the app and what they are used for
 
 Notifications :
 Upon loading up the app, you will be asked whether you'd like to turn on notifications or not. Regardless of what you choose, you’ll be able to change your choice by navigating to settings ->What’s Cookin’ -> Notifications.
@@ -40,7 +51,7 @@ In the home view, there is a three-lined icon in the top left corner of the app.
 * History icon(clock): This button navigates you to the history view.
 * Settings icon(gear): This icon navigates you to the settings view.
 
-Menu View(menu icon): In this view, the app categorizes the user’s favorited recipes by breakfast, lunch, dinner, and dessert. The user can select one of the tabs to see which of their favorited recipes would be recommended to prepare at the selected time of day. Within this view, there is also a shopping cart tab that navigates you to the shopping cart view. In this view, the user is able to shop for missing ingredient items from Amazon. Once you’ve added the item to the cart, it will be listed in the view. You can always delete the item from the shopping list once you’ve acquired the ingredient item.
+Side bar Menu View(menu icon): In this view, the app categorizes fetched recipes by meal types. These meal types include breakfast,lunch,dinner,dessert, etc. The user can select one of the tabs to see a collection of recipes they would like to prepare based on the meal type. Within this view, there is also a shopping cart tab that navigates you to the shopping cart view. In this view, the user is able to shop for missing ingredient items from Amazon. Once you’ve added the item to the cart, it will be listed in the view. You can always delete the item from the shopping list once you’ve acquired the ingredient item.
 
 Profile View: Once you click on the “Profile” button, it will navigate you to the user profile view. Here you’ll be able to select any image for your profile picture from your library, change your status, and write a short bio. To select a profile image, click on the circle in the top middle center of the page. From the user profile view, the user will be able to navigate to the following/followers view by clicking on the button located at the bottom of the status toggle button.
 

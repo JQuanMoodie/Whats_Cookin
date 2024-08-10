@@ -103,30 +103,47 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    private func repostPost(_ post: UserPost) {
-        guard let currentUserID = Auth.auth().currentUser?.uid else { return }
-        let db = Firestore.firestore()
-        let repostData: [String: Any] = [
-            "title": post.title ?? "",
-            "image": post.image ?? "",
-            "servings": post.servings ?? 0,
-            "readyInMinutes": post.readyInMinutes ?? 0,
-            "instructions": post.instructions ?? "",
-            "content": post.content ?? "",
-            "timestamp": Timestamp(date: Date()),
-            "originalAuthorID": post.authorID,
-            "originalAuthorUsername": post.authorUsername,
-            "isRepost": true
-        ]
-        db.collection("users").document(currentUserID).collection("posts").addDocument(data: repostData) { error in
-            if let error = error {
-                print("Error reposting: \(error.localizedDescription)")
-            } else {
-                print("Repost successful")
-                self.loadUserFeed()
-            }
+  private func repostPost(_ post: UserPost) {
+    guard let currentUserID = Auth.auth().currentUser?.uid else { return }
+    let db = Firestore.firestore()
+    
+    // Ensure repost is only processed if it is a repost
+    guard !post.isRepost else {
+        print("This post is already a repost.")
+        return
+    }
+    
+    // Set the original author and username fields correctly
+    let originalAuthorID = post.authorID
+    let originalAuthorUsername = post.authorUsername
+    
+    let repostData: [String: Any] = [
+        "title": post.title ?? "",
+        "image": post.image ?? "",
+        "servings": post.servings ?? 0,
+        "readyInMinutes": post.readyInMinutes ?? 0,
+        "instructions": post.instructions ?? "",
+        "content": post.content ?? "",
+        "timestamp": Timestamp(date: Date()),
+        "originalAuthorID": originalAuthorID,
+        "originalAuthorUsername": originalAuthorUsername,
+        "isRepost": true,
+        "authorID": currentUserID,
+        "authorUsername": Auth.auth().currentUser?.displayName ?? ""
+    ]
+    
+    db.collection("users").document(currentUserID).collection("posts").addDocument(data: repostData) { error in
+        if let error = error {
+            print("Error reposting: \(error.localizedDescription)")
+        } else {
+            print("Repost successful")
+            self.loadUserFeed()
         }
     }
+}
+
+
+
     
     private func deletePost(_ post: UserPost) {
         guard let currentUserID = Auth.auth().currentUser?.uid else { return }
@@ -141,7 +158,7 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-   private func likePost(_ post: UserPost) {
+ private func likePost(_ post: UserPost) {
     guard let currentUserID = Auth.auth().currentUser?.uid else { return }
     let db = Firestore.firestore()
     let postRef = db.collection("users").document(post.authorID).collection("posts").document(post.postID)
@@ -180,6 +197,7 @@ class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
 }
+
 
     
 private func unlikePost(_ post: UserPost) {

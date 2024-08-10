@@ -20,9 +20,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     }()
 
     private let profileButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Profile", for: .normal)
-        button.setTitleColor(.black, for: .normal)
+        let button = UIButton()
+        button.setImage(UIImage(systemName: "person.circle"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -325,4 +324,3 @@ extension UIImageView {
         }
     }
 }
-

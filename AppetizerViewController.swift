@@ -1,55 +1,34 @@
 //
-//  Drink.swift
-//  What'sCookin
+//  AppetizerViewController.swift
+//  capstoneproj
 //
-//  Created by Raisa Methila on 8/7/24.
+//  Created by Jose Vasquez on 08/07/24.
 //
 
 import UIKit
 
-class DrinkViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+class AppetizerViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     private let titleLabel = UILabel()
     private let descriptionLabel = UILabel()
     private var collectionView: UICollectionView!
-    private var drinkRecipes: [Recipee] = []
+    private var appetizerRecipes: [Recipee] = []
     private let recipeService = RecipeService()
     private let maxRecipes = 10
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(red: 0.0, green: 0.0, blue: 0.5, alpha: 1.0) // Darker blue background color
+        view.backgroundColor = UIColor.brown // Set the background color to brown
 
-        setupNavigationBar()
         setupTitleLabel()
         setupDescriptionLabel()
         setupCollectionView()
-        fetchDrinkRecipes()
-    }
-
-    private func setupNavigationBar() {
-        // Ensure the navigation bar is visible
-        navigationController?.setNavigationBarHidden(false, animated: true)
-        
-        // Set the title of the view controller
-        title = "Drinks"
-        
-        // Add a back button
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            title: "Back",
-            style: .plain,
-            target: self,
-            action: #selector(backButtonTapped)
-        )
-    }
-
-    @objc private func backButtonTapped() {
-        navigationController?.popViewController(animated: true)
+        fetchAppetizerRecipes()
     }
 
     private func setupTitleLabel() {
-        titleLabel.text = "Refreshing Drinks!"
+        titleLabel.text = "Appetizers Galore!"
         titleLabel.font = UIFont.boldSystemFont(ofSize: 36)
-        titleLabel.textColor = .white
+        titleLabel.textColor = .white // Changed text color to white for better contrast
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
@@ -62,9 +41,9 @@ class DrinkViewController: UIViewController, UICollectionViewDataSource, UIColle
     }
 
     private func setupDescriptionLabel() {
-        descriptionLabel.text = "Quench your thirst with our selection of refreshing drinks. Discover a variety of beverages to keep you hydrated and refreshed."
+        descriptionLabel.text = "Start your meal with a tasty appetizer!"
         descriptionLabel.font = UIFont.systemFont(ofSize: 18)
-        descriptionLabel.textColor = .white
+        descriptionLabel.textColor = .lightGray // Changed text color to light gray for better contrast
         descriptionLabel.textAlignment = .center
         descriptionLabel.numberOfLines = 0
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -101,22 +80,22 @@ class DrinkViewController: UIViewController, UICollectionViewDataSource, UIColle
         ])
     }
 
-    private func fetchDrinkRecipes() {
+    private func fetchAppetizerRecipes() {
         fetchRecipesRecursively()
     }
 
     private func fetchRecipesRecursively() {
-        guard drinkRecipes.count < maxRecipes else {
+        guard appetizerRecipes.count < maxRecipes else {
             DispatchQueue.main.async {
                 self.collectionView.reloadData()
             }
             return
         }
 
-        recipeService.fetchRandomDrinkRecipes { [weak self] result in
+        recipeService.fetchRandomAppetizerRecipes { [weak self] result in
             switch result {
             case .success(let recipes):
-                self?.drinkRecipes.append(contentsOf: recipes)
+                self?.appetizerRecipes.append(contentsOf: recipes)
                 DispatchQueue.main.async {
                     self?.collectionView.reloadData()
                 }
@@ -124,7 +103,7 @@ class DrinkViewController: UIViewController, UICollectionViewDataSource, UIColle
                     self?.fetchRecipesRecursively()
                 }
             case .failure(let error):
-                print("Failed to fetch drink recipes: \(error)")
+                print("Failed to fetch appetizer recipes: \(error)")
                 DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
                     self?.fetchRecipesRecursively()
                 }
@@ -135,12 +114,12 @@ class DrinkViewController: UIViewController, UICollectionViewDataSource, UIColle
     // MARK: - UICollectionViewDataSource
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return drinkRecipes.count
+        return appetizerRecipes.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RecipeCollectionViewCell.identifier, for: indexPath) as! RecipeCollectionViewCell
-        let recipe = drinkRecipes[indexPath.item]
+        let recipe = appetizerRecipes[indexPath.item]
         cell.configure(with: recipe)
         return cell
     }
@@ -153,9 +132,10 @@ class DrinkViewController: UIViewController, UICollectionViewDataSource, UIColle
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedRecipe = drinkRecipes[indexPath.item]
+        let selectedRecipe = appetizerRecipes[indexPath.item]
         let detailVC = RecipeDetailViewController()
         detailVC.recipe = selectedRecipe
         navigationController?.pushViewController(detailVC, animated: true)
     }
 }
+
