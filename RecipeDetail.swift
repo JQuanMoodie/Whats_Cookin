@@ -131,6 +131,9 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
         buttonStackView.addArrangedSubview(favoriteButton)
         buttonStackView.addArrangedSubview(postButton)
         buttonStackView.addArrangedSubview(shareButton)
+
+        //ingredients
+        ingredientsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "IngredientCell")
         
         setupConstraints()
         setupData()
@@ -357,8 +360,8 @@ class RecipeDetailViewController: UIViewController, UITableViewDataSource, UITab
             ingredientsTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             ingredientsTableView.heightAnchor.constraint(equalToConstant: 200),
             //
-
-            instructionsTextView.topAnchor.constraint(equalTo: readyInMinutesLabel.bottomAnchor, constant: 16),
+            
+            instructionsTextView.topAnchor.constraint(equalTo: ingredientsTableView.bottomAnchor, constant: 16),
             instructionsTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             instructionsTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             instructionsTextView.bottomAnchor.constraint(equalTo: buttonStackView.topAnchor, constant: -16),
