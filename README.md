@@ -1,5 +1,13 @@
 # How to use What's Cookin'
 
+Team members:
+
+J'Quan (Github repository owner)
+Jevon(jevonwil24)
+Jose (Mamasuchi’s)
+Rachel(rachelwu88)
+Raisa(raisax2)
+
 Installations:
 Xcode (latest version preferred)
 Firebase iOS SDK-https://github.com/firebase/firebase-ios-sdk. 
