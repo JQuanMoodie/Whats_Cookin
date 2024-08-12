@@ -45,11 +45,10 @@
         // Allow write access if the user is authenticated and the user ID matches the authenticated user's ID\
         allow write: if request.auth != null && request.auth.uid == userId;\
 \
-        // Allow update to likesCount and likedUsers by any authenticated user\
+        // Allow update to likesCount, likedUsers, and repost-related fields by any authenticated user\
         allow update: if request.auth != null &&\
-          // Only allow updating likesCount and likedUsers fields\
-          request.resource.data.keys().hasAll(['likesCount', 'likedUsers']) &&\
-          request.resource.data.diff(resource.data).changedKeys().hasOnly(['likesCount', 'likedUsers']);\
+          // Only allow updating likesCount, likedUsers, isRepost, repostCount, and repostedUsers fields\
+          request.resource.data.diff(resource.data).changedKeys().hasOnly(['likesCount', 'likedUsers', 'isRepost', 'repostCount', 'repostedUsers']);\
       \}\
 \
       // Rules for the shoppingCartItems subcollection\
@@ -91,4 +90,5 @@
     \}\
   \}\
 \}\
+\
 }
