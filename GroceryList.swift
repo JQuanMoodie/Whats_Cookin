@@ -14,41 +14,6 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
-//checkbox
-class GroceryListCell: UITableViewCell {
-    
-    let checkboxButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "square"), for: .normal)
-        button.setImage(UIImage(systemName: "checkmark.square"), for: .selected)
-        return button
-    }()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        contentView.addSubview(checkboxButton)
-        
-        // Position the checkbox on the left side
-        checkboxButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            checkboxButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
-            checkboxButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            checkboxButton.widthAnchor.constraint(equalToConstant: 30),
-            checkboxButton.heightAnchor.constraint(equalToConstant: 30)
-        ])
-        
-        checkboxButton.addTarget(self, action: #selector(toggleCheckbox), for: .touchUpInside)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    @objc func toggleCheckbox() {
-        checkboxButton.isSelected.toggle()
-    }
-}
-
 // GroceryListViewController managing the table view
 class GroceryListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
@@ -263,3 +228,57 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
         return cell
     }
 }
+
+//checkbox
+class GroceryListCell: UITableViewCell {
+    
+    let checkboxButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "square"), for: .normal)
+        button.setImage(UIImage(systemName: "checkmark.square"), for: .selected)
+        return button
+    }()
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        contentView.addSubview(checkboxButton)
+        
+        // Position the checkbox on the left side
+        checkboxButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            checkboxButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+            checkboxButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            checkboxButton.widthAnchor.constraint(equalToConstant: 30),
+            checkboxButton.heightAnchor.constraint(equalToConstant: 30)
+        ])
+        
+        checkboxButton.addTarget(self, action: #selector(toggleCheckbox), for: .touchUpInside)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc func toggleCheckbox() {
+        checkboxButton.isSelected.toggle()
+    }
+}
+extension GroceryListViewController {
+    
+    // Present an alert to edit the item
+    func presentEditItemAlert(for ingredient: String, at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Edit Item", message: nil, preferredStyle: .alert)
+        alert.addTextField { field in
+            field.text = ingredient
+            field.placeholder = "Enter Item..."
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
+            if let field = alert.textFields?.first, let newText = field.text, !newText.isEmpty {
+                self?.updateItem(name: newText, at: indexPath)
+            }
+        }))
+        present(alert, animated: true)
+    }
+}
+
