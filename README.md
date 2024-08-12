@@ -2,7 +2,7 @@
 
 Team members:
 
-J'Quan (Github repository owner)
+J'Quan (Github repository owner; JQuanMoodie)
 Jevon(jevonwil24)
 Jose (Mamasuchi’s)
 Rachel(rachelwu88)
