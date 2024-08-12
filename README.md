@@ -2,11 +2,11 @@
 
 Team members:
 
-J'Quan (Github repository owner; JQuanMoodie)
-Jevon(jevonwil24)
-Jose (Mamasuchi’s)
-Rachel(rachelwu88)
-Raisa(raisax2)
+J'Quan Moodie(Github repository owner; JQuanMoodie)
+Jevon Williams(jevonwil24)
+Jose Vasquez(Mamasuchi’s)
+Rachel Wu(rachelwu88)
+Raisa Methila(raisax2)
 
 Installations:
 Xcode (latest version preferred)
