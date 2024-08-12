@@ -9,7 +9,7 @@
 import UIKit
 
 class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    let channels = ["Breakfast", "Main Course", "Drink", "Dessert", "Side Dish", "Appetizer", "Snack", "Shopping Cart", "Grocery List"]
+    let channels = ["Breakfast", "Main Course", "Drink", "Dessert", "Side Dish", "Appetizer", "Snack", "Salad", "Shopping Cart", "Grocery List"]
     var tableView: UITableView!
     var dismissSidebar: (() -> Void)?
 
@@ -98,12 +98,14 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
         case "Side Dish":
             imageName = "leaf.fill"
         case "Appetizer":
-            imageName = "fork.knife"  // Adjust this line with the appropriate SF Symbol if available
+            imageName = "fork.knife"
         case "Snack":
             imageName = "bag.fill"
+        case "Salad":  // New case for Salad
+            imageName = "leaf.arrow.circlepath"
         case "Shopping Cart":
             imageName = "cart"
-        case "Grocery List":  //case for Grocery List
+        case "Grocery List":
             imageName = "list.bullet"
         default:
             imageName = "questionmark.circle.fill"
@@ -172,6 +174,14 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                 let navController = UINavigationController(rootViewController: snackVC)
                 present(navController, animated: true, completion: nil)
             }
+        } else if selectedChannel == "Salad" {  // New case for Salad
+            let saladVC = SaladViewController()
+            if let navController = navigationController {
+                navController.pushViewController(saladVC, animated: true)
+            } else {
+                let navController = UINavigationController(rootViewController: saladVC)
+                present(navController, animated: true, completion: nil)
+            }
         } else if selectedChannel == "Shopping Cart" {
             let shoppingVC = ShoppingCartViewController()
             if let navController = navigationController {
@@ -180,7 +190,7 @@ class SidebarViewController: UIViewController, UITableViewDelegate, UITableViewD
                 let navController = UINavigationController(rootViewController: shoppingVC)
                 present(navController, animated: true, completion: nil)
             }
-        } else if selectedChannel == "Grocery List" {  // New case for Grocery List
+        } else if selectedChannel == "Grocery List" {
             let groceryListVC = GroceryListViewController()
             if let navController = navigationController {
                 navController.pushViewController(groceryListVC, animated: true)
