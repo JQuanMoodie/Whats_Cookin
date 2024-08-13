@@ -86,16 +86,6 @@ class SearchViewController: UIViewController {
         return button
     }()
 
-    private let saveSearchButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Save Search", for: .normal)
-        button.backgroundColor = .systemGreen
-        button.layer.cornerRadius = 10
-        button.setTitleColor(.white, for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -108,7 +98,6 @@ class SearchViewController: UIViewController {
         view.addSubview(excludeLabel)
         view.addSubview(excludeTextField)
         view.addSubview(searchButton)
-        view.addSubview(saveSearchButton)
         
         setupConstraints()
         
@@ -165,10 +154,6 @@ class SearchViewController: UIViewController {
             searchButton.topAnchor.constraint(equalTo: excludeTextField.bottomAnchor, constant: 20),
             searchButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             searchButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            
-            saveSearchButton.topAnchor.constraint(equalTo: searchButton.bottomAnchor, constant: 20),
-            saveSearchButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            saveSearchButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
     }
 }
