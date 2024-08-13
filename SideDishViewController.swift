@@ -17,7 +17,7 @@ class SideDishViewController: UIViewController, UICollectionViewDataSource, UICo
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.systemPink
+        view.backgroundColor = UIColor.systemYellow.withAlphaComponent(0.8) // Darker yellow background color
 
         setupTitleLabel()
         setupDescriptionLabel()
