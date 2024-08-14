@@ -7,7 +7,7 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
-class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITabBarDelegate, UITabBarControllerDelegate {
+class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITabBarDelegate, UITabBarControllerDelegate, UISearchBarDelegate {
 
     // MARK: - UI Elements
 
@@ -33,6 +33,14 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    // Add home search bar
+    private let homeSearchBar: UISearchBar = {
+        let searchBar = UISearchBar()
+        searchBar.placeholder = "Search..."
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        return searchBar
+    }()
 
     private let tabBar: UITabBar = {
         let tabBar = UITabBar()
@@ -45,10 +53,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         return tabBar
     }()
-
+    
     private var sideMenuViewController: SidebarViewController!
     private var isSideMenuVisible = false
-
+    
     private var collectionView: UICollectionView!
     private var randomRecipes: [Recipee] = []
     private let recipeService = RecipeService() // Create instance of RecipeService
@@ -64,8 +72,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(menuButton)
         view.addSubview(profileButton)
         view.addSubview(titleLabel)
+        view.addSubview(homeSearchBar)
         view.addSubview(tabBar)
-
+        
         // Setup side menu
         setupSideMenu()
 
@@ -85,11 +94,14 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 
         // Set tab bar delegate
         tabBar.delegate = self
-
+        
+        // Set search bar delegate
+        homeSearchBar.delegate = self
+        
         // Fetch random recipes
         fetchRandomRecipes()
     }
-
+    
     private func setupSideMenu() {
         sideMenuViewController = SidebarViewController()
         addChild(sideMenuViewController)
@@ -158,7 +170,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         print("Fetching random recipes...")
         fetchRecipesBatch()
     }
-
+    
     private func fetchRecipesBatch() {
         recipeService.fetchRandomRecipes { [weak self] result in
             switch result {
@@ -194,6 +206,14 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
 
+    // MARK: - Search Bar Delegate
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let query = searchBar.text, !query.isEmpty else { return }
+        homeRecipeFetch(query: query)
+        searchBar.resignFirstResponder()
+    }
+
     // MARK: - Collection View
 
     private func setupCollectionView() {
@@ -212,7 +232,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(collectionView)
 
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            collectionView.topAnchor.constraint(equalTo: homeSearchBar.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             collectionView.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -20)
@@ -252,40 +272,55 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            menuButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            menuButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            menuButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            menuButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
 
-            profileButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            profileButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            profileButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            profileButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
 
+            titleLabel.topAnchor.constraint(equalTo: menuButton.bottomAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.topAnchor.constraint(equalTo: profileButton.bottomAnchor, constant: 16),
+            
+            homeSearchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
+            homeSearchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            homeSearchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            tabBar.heightAnchor.constraint(equalToConstant: 50)
+            tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
 
-    // MARK: - UITabBarDelegate
+    // MARK: - Tab Bar Delegate Method
 
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
         switch item.tag {
-        case 0: break
-        case 1: navigateToFavoriteViewController()
-        case 2: navigateToHistoryViewController()
-        case 3: navigateToSearchViewController()
-        case 4: navigateToSettingsViewController()
-        default: break
+        case 0:
+            // Already on Home
+            break
+        case 1:
+            navigateToFavoriteViewController()
+        case 2:
+            navigateToHistoryViewController()
+        case 3:
+            navigateToSearchViewController()
+        case 4:
+            navigateToSettingsViewController()
+        default:
+            break
         }
     }
+}
 
-    // MARK: - UITabBarControllerDelegate
-
-    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
-        if viewController is HomeViewController {
-            // Optionally handle when HomeViewController is selected again
+// UIImageView extension to load images from URL
+extension UIImageView {
+    func load(url: URL) {
+        DispatchQueue.global().async {
+            if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self.image = image
+                }
+            }
         }
     }
 }
