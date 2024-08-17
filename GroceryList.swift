@@ -27,7 +27,12 @@ class GroceryListCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         contentView.addSubview(checkboxButton)
+        contentView.addSubview(textLabel!) // Explicitly add textLabel to the contentView
         
+        // Position the checkbox on the left side
+        checkboxButton.translatesAutoresizingMaskIntoConstraints = false
+        textLabel?.translatesAutoresizingMaskIntoConstraints = false
+
         // Position the checkbox on the left side
         checkboxButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -35,6 +40,11 @@ class GroceryListCell: UITableViewCell {
             checkboxButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             checkboxButton.widthAnchor.constraint(equalToConstant: 30),
             checkboxButton.heightAnchor.constraint(equalToConstant: 30)
+
+            //no overlap
+            textLabel!.leadingAnchor.constraint(equalTo: checkboxButton.trailingAnchor, constant: 10),
+            textLabel!.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+            textLabel!.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
         ])
         
         checkboxButton.addTarget(self, action: #selector(toggleCheckbox), for: .touchUpInside)
