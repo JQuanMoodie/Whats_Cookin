@@ -83,3 +83,35 @@ History View: When you click on the clock icon in the Home View’s tab bar, it�
 Shopping Cart View: When you click on the “Shopping Cart” tab within the Side Bar Menu View, it’ll navigate you to this view. Here, you can shop for ingredients by clicking on the search icon in the top right corner, typing the ingredient you’re looking for, and adding it to your shopping cart list. Once you search for the ingredient, the app will direct you to Amazon’s search page, where you can shop online to see if it’s available to purchase. If the item isn’t available to purchase or if you can’t find the item you’re looking for, you can press the “Add to Cart” button and save the item to your shopping list for a later purchase date. When you do find the item you’re looking for on Amazon, simply swipe left on the shopping list item and click delete.
 
 Grocery List: When you click on the "Grocery List" tab within the Side Bar Menu View, it will navigate you to this view. Here, if the item needed is not listed/sold-out/do not want to purchase through amazon, it will be here so the user can add the item so they can do their in-person grocery shopping!
+
+
+Needs improvement on:
+
+Shortcomings:
+
+The home view’s search bar is non-functional hence it is deleted in the final presentation. If a user tries to use it , the app will crash and auto-close itself. As a result, the homesearch view still exists in the github without being called.
+
+The homepage only can pull 2 recipes at a time hence causes delay in loading, this is due to limitation in the API request. 
+
+The notification function doesn’t work sometimes.
+
+Search ingredients yes and no functionality doesn’t work
+
+Search ingredients page, if you have more than 5 ingredients included, most of the time there are no results. 
+
+Sometimes the Search with ingredients does not include all the ingredients imputed, and the result is not limited to the ingredients imputed for include
+
+Sometimes the ingredients does not exclude the ingredients if too many of them are imputed
+
+The save search button does not work
+
+Fav and post to feed is only limited to logged in users
+
+The title of the recipe goes out of screen in the homepage random pulls or in other views however its clear in recipe detail view.
+
+The followers count in the Followings/Followers View. It doesn’t accurately display the followers of the user; though the following count is accurately displayed. 
+
+The user feed’s design was to reflect that of tumblr’s feed, but doesn't really do that
+You’ll notice that the repost icon (the square made of circulating arrows) appears in posts for both reposts and non reposted posts, which shouldnt be the case. The icon is supposed to only appear in reposts, adjacent to the username label and alongside the original author’s name(the person  who reposted the post).
+
+
