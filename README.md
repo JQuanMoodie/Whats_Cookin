@@ -1,5 +1,13 @@
 # How to use What's Cookin'
 
+Team members:
+
+J'Quan Moodie(Github repository owner; JQuanMoodie)
+Jevon Williams(jevonwil24)
+Jose Vasquez(Mamasuchi’s)
+Rachel Wu(rachelwu88)
+Raisa Methila(raisax2)
+
 Installations:
 Xcode (latest version preferred)
 Firebase iOS SDK-https://github.com/firebase/firebase-ios-sdk. 
@@ -42,7 +50,7 @@ Upon loading up the app, you will be asked whether you'd like to turn on notific
 
 Login/Signup View: This is where you can either log in or sign up for an account. Once you sign up, a notification will appear, letting you know the account was created successfully. After you have signed up, you will be able to log in. After you have logged in, you’ll be navigated to the home view.
 
-Home View: This is the main view. Here the user is able to navigate to various parts of the app. Once logged in, the user is presented with two randomly recommended recipe images. These images are clickable and will navigate to a detailed view of the recipe. The user can either favorite, share to social media, or repost the recipe to the user’s feed. The home view, also, enables the user to search for recipes by name or description via the search bar. As mentioned before, there are multiple buttons that navigate you to various parts of the app. Some of these buttons are:
+Home View: This is the main view. Here the user is able to navigate to various parts of the app. Once logged in, the user is presented with two randomly recommended recipe images. These images are clickable and will navigate to a detailed view of the recipe. The user can either favorite, share to social media, or repost the recipe to the user’s feed. As mentioned before, there are multiple buttons that navigate you to various parts of the app. Some of these buttons are:
 * Menu icon (Home View):
 In the home view, there is a three-lined icon in the top left corner of the app. Once clicked, it will open up the menu view.
 * Profile button: This button will navigate a user to the profile view.

@@ -7,7 +7,7 @@ import UIKit
 import FirebaseFirestore
 import FirebaseAuth
 
-class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITabBarDelegate, UITabBarControllerDelegate, UISearchBarDelegate {
+class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITabBarDelegate, UITabBarControllerDelegate {
 
     // MARK: - UI Elements
 
@@ -33,14 +33,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
-    // Add home search bar
-    private let homeSearchBar: UISearchBar = {
-        let searchBar = UISearchBar()
-        searchBar.placeholder = "Search..."
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        return searchBar
-    }()
 
     private let tabBar: UITabBar = {
         let tabBar = UITabBar()
@@ -53,10 +45,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         return tabBar
     }()
-    
+
     private var sideMenuViewController: SidebarViewController!
     private var isSideMenuVisible = false
-    
+
     private var collectionView: UICollectionView!
     private var randomRecipes: [Recipee] = []
     private let recipeService = RecipeService() // Create instance of RecipeService
@@ -72,9 +64,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(menuButton)
         view.addSubview(profileButton)
         view.addSubview(titleLabel)
-        view.addSubview(homeSearchBar)
         view.addSubview(tabBar)
-        
+
         // Setup side menu
         setupSideMenu()
 
@@ -94,14 +85,11 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 
         // Set tab bar delegate
         tabBar.delegate = self
-        
-        // Set search bar delegate
-        homeSearchBar.delegate = self
-        
+
         // Fetch random recipes
         fetchRandomRecipes()
     }
-    
+
     private func setupSideMenu() {
         sideMenuViewController = SidebarViewController()
         addChild(sideMenuViewController)
@@ -170,7 +158,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         print("Fetching random recipes...")
         fetchRecipesBatch()
     }
-    
+
     private func fetchRecipesBatch() {
         recipeService.fetchRandomRecipes { [weak self] result in
             switch result {
@@ -206,14 +194,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
 
-    // MARK: - Search Bar Delegate
-
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        guard let query = searchBar.text, !query.isEmpty else { return }
-        homeRecipeFetch(query: query)
-        searchBar.resignFirstResponder()
-    }
-
     // MARK: - Collection View
 
     private func setupCollectionView() {
@@ -232,7 +212,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(collectionView)
 
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: homeSearchBar.bottomAnchor, constant: 20),
+            collectionView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             collectionView.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -20)
@@ -280,10 +260,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
 
             titleLabel.topAnchor.constraint(equalTo: menuButton.bottomAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            homeSearchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            homeSearchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            homeSearchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
 
             tabBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),

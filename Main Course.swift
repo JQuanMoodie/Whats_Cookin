@@ -17,7 +17,7 @@ class LunchViewController: UIViewController, UICollectionViewDataSource, UIColle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.systemGreen // Lunch-themed background color
+        view.backgroundColor = UIColor.systemOrange.withAlphaComponent(0.2) // Lighter orange background color
 
         setupTitleLabel()
         setupDescriptionLabel()

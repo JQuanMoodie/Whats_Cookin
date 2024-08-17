@@ -1,5 +1,5 @@
 //
-//  SideDishViewController.swift
+//  SaladViewController.swift
 //  capstoneproj
 //
 //  Created by Jose Vasquez on 08/07/24.
@@ -7,26 +7,26 @@
 
 import UIKit
 
-class SideDishViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+class SaladViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     private let titleLabel = UILabel()
     private let descriptionLabel = UILabel()
     private var collectionView: UICollectionView!
-    private var sideDishRecipes: [Recipee] = []
+    private var saladRecipes: [Recipee] = []
     private let recipeService = RecipeService()
     private let maxRecipes = 10
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.systemYellow.withAlphaComponent(0.8) // Darker yellow background color
+        view.backgroundColor = UIColor.systemGreen
 
         setupTitleLabel()
         setupDescriptionLabel()
         setupCollectionView()
-        fetchSideDishRecipes()
+        fetchSaladRecipes()
     }
 
     private func setupTitleLabel() {
-        titleLabel.text = "Time for Side Dishes!"
+        titleLabel.text = "Fresh and Healthy Salads"
         titleLabel.font = UIFont.boldSystemFont(ofSize: 36)
         titleLabel.textColor = .black
         titleLabel.textAlignment = .center
@@ -41,7 +41,7 @@ class SideDishViewController: UIViewController, UICollectionViewDataSource, UICo
     }
 
     private func setupDescriptionLabel() {
-        descriptionLabel.text = "Enjoy a delicious side dish to complement your meal!"
+        descriptionLabel.text = "Explore our variety of nutritious and delicious salad recipes!"
         descriptionLabel.font = UIFont.systemFont(ofSize: 18)
         descriptionLabel.textColor = .darkGray
         descriptionLabel.textAlignment = .center
@@ -80,22 +80,22 @@ class SideDishViewController: UIViewController, UICollectionViewDataSource, UICo
         ])
     }
 
-    private func fetchSideDishRecipes() {
+    private func fetchSaladRecipes() {
         fetchRecipesRecursively()
     }
 
     private func fetchRecipesRecursively() {
-        guard sideDishRecipes.count < maxRecipes else {
+        guard saladRecipes.count < maxRecipes else {
             DispatchQueue.main.async {
                 self.collectionView.reloadData()
             }
             return
         }
 
-        recipeService.fetchRandomSideDishRecipes { [weak self] result in
+        recipeService.fetchRandomSaladRecipes { [weak self] result in
             switch result {
             case .success(let recipes):
-                self?.sideDishRecipes.append(contentsOf: recipes)
+                self?.saladRecipes.append(contentsOf: recipes)
                 DispatchQueue.main.async {
                     self?.collectionView.reloadData()
                 }
@@ -103,7 +103,7 @@ class SideDishViewController: UIViewController, UICollectionViewDataSource, UICo
                     self?.fetchRecipesRecursively()
                 }
             case .failure(let error):
-                print("Failed to fetch side dish recipes: \(error)")
+                print("Failed to fetch salad recipes: \(error)")
                 DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
                     self?.fetchRecipesRecursively()
                 }
@@ -114,12 +114,12 @@ class SideDishViewController: UIViewController, UICollectionViewDataSource, UICo
     // MARK: - UICollectionViewDataSource
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return sideDishRecipes.count
+        return saladRecipes.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RecipeCollectionViewCell.identifier, for: indexPath) as! RecipeCollectionViewCell
-        let recipe = sideDishRecipes[indexPath.item]
+        let recipe = saladRecipes[indexPath.item]
         cell.configure(with: recipe)
         return cell
     }
@@ -132,7 +132,7 @@ class SideDishViewController: UIViewController, UICollectionViewDataSource, UICo
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let selectedRecipe = sideDishRecipes[indexPath.item]
+        let selectedRecipe = saladRecipes[indexPath.item]
         let detailVC = RecipeDetailViewController()
         detailVC.recipe = selectedRecipe
         navigationController?.pushViewController(detailVC, animated: true)

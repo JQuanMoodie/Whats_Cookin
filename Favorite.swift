@@ -39,8 +39,8 @@ class FavoritesViewController: UIViewController {
     
     private let profileButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Profile", for: .normal)
         button.setTitleColor(.black, for: .normal)
+        button.setImage(UIImage(systemName: "person.circle"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()

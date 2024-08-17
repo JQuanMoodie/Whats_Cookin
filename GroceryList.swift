@@ -2,62 +2,9 @@
 // 7/17/2024
 // Rachel Wu 
 
-//Grocery List View Controller
-// 7/17/2024
-// Rachel Wu 
-
-// Grocery List View Controller
-// 7/17/2024
-// Rachel Wu 
-
 import UIKit
 import FirebaseFirestore
 import FirebaseAuth
-
-//checkbox
-class GroceryListCell: UITableViewCell {
-    
-    let checkboxButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "square"), for: .normal)
-        button.setImage(UIImage(systemName: "checkmark.square"), for: .selected)
-        return button
-    }()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        contentView.addSubview(checkboxButton)
-        contentView.addSubview(textLabel!) // Explicitly add textLabel to the contentView
-        
-        // Position the checkbox on the left side
-        checkboxButton.translatesAutoresizingMaskIntoConstraints = false
-        textLabel?.translatesAutoresizingMaskIntoConstraints = false
-
-        // Position the checkbox on the left side
-        checkboxButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            checkboxButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
-            checkboxButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            checkboxButton.widthAnchor.constraint(equalToConstant: 30),
-            checkboxButton.heightAnchor.constraint(equalToConstant: 30)
-
-            //no overlap
-            textLabel!.leadingAnchor.constraint(equalTo: checkboxButton.trailingAnchor, constant: 10),
-            textLabel!.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
-            textLabel!.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
-        ])
-        
-        checkboxButton.addTarget(self, action: #selector(toggleCheckbox), for: .touchUpInside)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    @objc func toggleCheckbox() {
-        checkboxButton.isSelected.toggle()
-    }
-}
 
 // GroceryListViewController managing the table view
 class GroceryListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
@@ -273,3 +220,64 @@ class GroceryListViewController: UIViewController, UITableViewDataSource, UITabl
         return cell
     }
 }
+
+//checkbox
+class GroceryListCell: UITableViewCell {
+    
+    let checkboxButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "square"), for: .normal)
+        button.setImage(UIImage(systemName: "checkmark.square"), for: .selected)
+        return button
+    }()
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        contentView.addSubview(checkboxButton)
+        contentView.addSubview(textLabel!) // Explicitly add textLabel to the contentView
+        
+        // Position the checkbox on the left side
+        checkboxButton.translatesAutoresizingMaskIntoConstraints = false
+        textLabel?.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            checkboxButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+            checkboxButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            checkboxButton.widthAnchor.constraint(equalToConstant: 30),
+            checkboxButton.heightAnchor.constraint(equalToConstant: 30)
+            //fix overlap
+            textLabel!.leadingAnchor.constraint(equalTo: checkboxButton.trailingAnchor, constant: 10),
+            textLabel!.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+            textLabel!.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+        ])
+        
+        checkboxButton.addTarget(self, action: #selector(toggleCheckbox), for: .touchUpInside)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc func toggleCheckbox() {
+        checkboxButton.isSelected.toggle()
+    }
+}
+extension GroceryListViewController {
+    
+    // Present an alert to edit the item
+    func presentEditItemAlert(for ingredient: String, at indexPath: IndexPath) {
+        let alert = UIAlertController(title: "Edit Item", message: nil, preferredStyle: .alert)
+        alert.addTextField { field in
+            field.text = ingredient
+            field.placeholder = "Enter Item..."
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { [weak self] _ in
+            if let field = alert.textFields?.first, let newText = field.text, !newText.isEmpty {
+                self?.updateItem(name: newText, at: indexPath)
+            }
+        }))
+        present(alert, animated: true)
+    }
+}
+
