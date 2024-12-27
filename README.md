@@ -1,4 +1,4 @@
-# How to use What's Cookin'
+# Version 2.0 of Let's COOK by Raisa Methila
 
 Team members:
 
