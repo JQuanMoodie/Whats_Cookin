@@ -1,16 +1,13 @@
 # What's Cooking 
-
-
-
 Version 2.0 of Let's_Cook by Raisa Methila
 
 Team members:
 
-J'Quan Moodie(Github repository owner; JQuanMoodie)
-Jevon Williams(jevonwil24)
-Jose Vasquez(Mamasuchi’s)
-Rachel Wu(rachelwu88)
-Raisa Methila(raisax2)
+- J'Quan Moodie(Github repository owner; JQuanMoodie)
+- Jevon Williams(jevonwil24)
+- Jose Vasquez(Mamasuchi’s)
+- Rachel Wu(rachelwu88)
+- Raisa Methila (raisax2)
 
 Installations:
 Xcode (latest version preferred)
